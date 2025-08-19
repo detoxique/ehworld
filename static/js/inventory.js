@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
-                applyItem(currentItemId, { lot_name: lotName });
+                applyItem(currentItemId, lotName);
                 auctionModal.style.display = 'none';
             });
             
@@ -104,29 +104,24 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             // Функция применения предмета
-            function applyItem(itemId, data = {}) {
-                const url = `/api/apply-item/${itemId}`;
-                
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: Object.keys(data).length ? JSON.stringify(data) : null
-                })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
+            async function applyItem(itemId, lotName) {
+                console.log(lotName);
+                const formData = new FormData();
+                formData.append('lot_name', lotName);
+
+                try {
+                    const response = await fetch(`/api/apply-item/${itemId}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
                         alert(result.message || 'Предмет успешно применен!');
                         // Обновляем страницу для отображения изменений
                         setTimeout(() => location.reload(), 1500);
-                    } else {
-                        alert('Ошибка: ' + (result.message || 'Неизвестная ошибка'));
                     }
-                })
-                .catch(error => {
-                    console.error('Ошибка:', error);
-                    alert('Произошла ошибка при применении предмета');
-                });
+                } catch (error) {
+                    location.reload();
+                }
             }
         });

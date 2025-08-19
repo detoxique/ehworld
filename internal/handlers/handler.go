@@ -1976,40 +1976,71 @@ func ApplyBadgeHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// func ApplyItem(w http.ResponseWriter, r *http.Request) {
-// 	vars := mux.Vars(r)
-// 	itemID, _ := strconv.Atoi(vars["id"])
-// 	session, _ := store.Get(r, sessionName)
-// 	userID, ok := session.Values["user_id"]
-// 	if !ok {
-// 		http.Error(w, "Unauthorised", http.StatusUnauthorized)
-// 		return
-// 	}
+func ApplyItem(w http.ResponseWriter, r *http.Request) {
+	r.ParseMultipartForm(100 << 20)
+	vars := mux.Vars(r)
+	itemID, _ := strconv.Atoi(vars["id"])
+	session, _ := store.Get(r, sessionName)
+	userID, ok := session.Values["user_id"]
+	if !ok {
+		http.Error(w, "Unauthorised", http.StatusUnauthorized)
+		return
+	}
 
-// 	data := struct {
-// 		LotName string `json:"lot_name"`
-// 	}{}
+	lot_name := r.FormValue("lot_name")
 
-// 	body, err := ioutil.ReadAll(r.Body)
-// 	if err != nil {
-// 		http.Error(w, "Internal error", http.StatusInternalServerError)
-// 		return
-// 	}
-// 	err = json.Unmarshal(body, &data)
-// 	if err != nil {
-// 		http.Error(w, "Internal error", http.StatusInternalServerError)
-// 		return
-// 	}
+	err := service.ApplyItem(itemID, userID.(int), lot_name)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusUnauthorized)
+		log.Println(err.Error())
+		return
+	}
 
-// 	err = service.ApplyItem(itemID, userID.(int), data.LotName)
-// 	if err != nil {
-// 		http.Error(w, "Internal error", http.StatusUnauthorized)
-// 		return
-// 	}
-
-// 	w.WriteHeader(http.StatusOK)
-// }
+	w.WriteHeader(http.StatusOK)
+}
 
 func ServeQueuePage(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, sessionName)
+	userID, ok := session.Values["user_id"]
+	if !ok {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
 
+	user, err := service.GetUserByID(userID.(int))
+	if err != nil {
+		log.Println("Не удалось получить пользователя из БД" + err.Error())
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	tmpl, err := template.New("queue.html").Funcs(template.FuncMap{
+		"isVideo": func(filename string) bool {
+			ext := strings.ToLower(filepath.Ext(filename))
+			return ext == ".mp4" || ext == ".mov" || ext == ".avi"
+		},
+		"formatViews":    service.FormatViews,
+		"checkModRole":   service.CheckModeratorOrAdminRole,
+		"checkAdminRole": service.CheckAdminRole,
+		"safeHTML": func(s string) template.HTML {
+			return template.HTML(s)
+		},
+		"hasNotifications": service.HasNotifications,
+		"isVIP":            service.IsVIP,
+		"hasBadge":         service.HasBadge,
+	}).ParseFiles("templates/queue.html")
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	data := struct {
+		User *models.User
+	}{
+		User: user,
+	}
+
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		log.Println(err.Error())
+	}
 }

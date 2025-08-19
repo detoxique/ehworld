@@ -143,6 +143,13 @@ CREATE TABLE inventory (
     reward_id INTEGER REFERENCES cases_rewards(id) ON DELETE CASCADE
 );
 
+CREATE TABLE auk_submissions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    lot TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 CREATE INDEX idx_files_moderation ON files (is_public, uploaded_at);
 CREATE INDEX idx_last_seen_user_post ON last_seen(user_id, post_id);
 

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ehworld</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/css/avatar.css">
+    <link rel="stylesheet" href="../static/css/main.css">
+</head>
+<body>
+    <header class="header">
+        <a href="#" class="logo">
+            <img src="../static/img/EhWorld.svg" width="128">
+        </a>
+        
+        <div class="nav-links">
+            <a href="#">Главная</a>
+            <a href="#">Лента</a>
+            <a href="#">Загрузить</a>
+        </div>
+        
+        <div class="search-container">
+            <input 
+                type="search" 
+                class="search-box" 
+                placeholder="Поиск..."
+            >
+        </div>
+    </header>
+
+<div class="container-md">
+    <div class="title">
+        <a>Главная</a>
+    </div>
+
+    <div class="content">
+        <div class="section">
+            <div class="weekly-best">
+            <p>Лучшее за неделю</p>
+
+            <div class="posts-container">
+            {{ range .MostPopularFiles }}
+            <a href="/post/{{.ID}}" class="post-card">
+                <div class="post-thumbnail">
+                    {{ if isVideo .FileName }}
+                    <img src="../static/uploads/{{.Thumbnail}}" alt="{{.Title}}">
+                    <div class="play-icon">▶</div>
+                    {{ else}}
+                    <img src="../static/uploads/{{.FileName}}" alt="{{.Title}}">
+                    {{ end }}
+                </div>
+                <div class="post-content">
+                    <h3 class="post-title">{{.Title}}</h3>
+                    <p class="post-author">@{{.AuthorName}}</p>
+                    <div class="post-stats">
+                        <span class="likes">❤️ {{.Likes}}</span>
+                        <span class="views">👁️ {{.Views}}</span>
+                    </div>
+                </div>
+            </a>
+            {{ end }}
+            </div>
+        </div>
+        
+        <div class="section">
+            <p>Последние загрузки</p>
+
+            <div class="posts-container">
+            {{ range .LastFiles }}
+            <a href="/post/{{.ID}}" class="post-card">
+                <div class="post-thumbnail">
+                    {{ if isVideo .FileName }}
+                    <img src="../static/uploads/{{.Thumbnail}}" alt="{{.Title}}">
+                    <div class="play-icon">▶</div>
+                    {{ else}}
+                    <img src="../static/uploads/{{.FileName}}" alt="{{.Title}}">
+                    {{ end }}
+                </div>
+                <div class="post-content">
+                    <h3 class="post-title">{{.Title}}</h3>
+                    <p class="post-author">@{{.AuthorName}}</p>
+                    <div class="post-stats">
+                        <span class="likes">❤️ {{.Likes}}</span>
+                        <span class="views">👁️ {{.Views}}</span>
+                    </div>
+                </div>
+            </a>
+            {{ end }}
+            </div>
+        </div>
+            
+        <div class="section">
+            <p>Вы недавно смотрели</p>
+
+            <div class="posts-container">
+            <!-- Карточка 1 -->
+            <a href="/post/1" class="post-card">
+                <div class="post-thumbnail">
+                    <img src="../static/uploads/photo_2025-07-30_17-28-27.jpg" alt="Пост">
+                    <div class="play-icon">▶</div>
+                </div>
+                <div class="post-content">
+                    <h3 class="post-title">Лучший клип недели</h3>
+                    <p class="post-author">@username</p>
+                    <div class="post-stats">
+                        <span class="likes">❤️ 2.4K</span>
+                        <span class="views">👁️ 15.7K</span>
+                    </div>
+                </div>
+            </a>
+            
+            <!-- Карточка 2 -->
+            <a href="/post/2" class="post-card">
+                <div class="post-thumbnail">
+                    <img src="../static/uploads/IMG_0065.JPG" alt="Пост">
+                </div>
+                <div class="post-content">
+                    <h3 class="post-title">Забавный момент</h3>
+                    <p class="post-author">@streamer</p>
+                    <div class="post-stats">
+                        <span class="likes">❤️ 1.8K</span>
+                        <span class="views">👁️ 12.3K</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        </div>
+            
+    </div>
+</div>
+    
+    <!-- Уведомление о Cookie -->
+    <div class="cookie-notice" id="cookieNotice">
+        <a>Файлы Cookie</a>
+        <p>Используя наш сайт, вы даете согласие на использование технических файлов Cookie. Мы используем минимальный набор информации, необходимый для функционирования сайта.</p>
+        <button class="cookie-btn" id="cookieButton">Good nice</button>
+    </div>
+
+    <footer class="footer">
+        <div class="container-fluid">
+            <div class="row">
+            <div class="col-md-4 footer-section">
+                <h5>Ehworld</h5>
+                <p>Лучшая платформа для обмена игровыми моментами и стримами</p>
+            </div>
+            <div class="col-md-4 footer-section">
+                <h5>Навигация</h5>
+                <ul>
+                    <li><a href="#">Главная</a></li>
+                    <li><a href="/feed">Лента</a></li>
+                    <li><a href="/upload">Загрузить</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4 footer-section">
+                <h5>Контакты</h5>
+                <ul>
+                    <li><a href="mailto:support@ehworld.com">support@ehworld.com</a></li>
+                    <li><a href="#">Discord</a></li>
+                    <li><a href="#">Twitter</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 Ehworld. Все права защищены.</p>
+        </div>
+        </div>
+    
+</footer>
+
+    <script>
+        // Проверяем, было ли уже принято соглашение
+        window.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('cookieAccepted') === 'true') {
+                document.getElementById('cookieNotice').style.display = 'none';
+            }
+        });
+
+        // Обработчик для кнопки Cookie
+        document.getElementById('cookieButton').addEventListener('click', function() {
+            const cookieNotice = document.getElementById('cookieNotice');
+            
+            // Добавляем класс для запуска анимации исчезновения
+            cookieNotice.classList.add('hide');
+            
+            // После завершения анимации скрываем элемент и сохраняем согласие
+            setTimeout(() => {
+                cookieNotice.style.display = 'none';
+                localStorage.setItem('cookieAccepted', 'true');
+            }, 500); // Должно соответствовать времени анимации (0.5s)
+        });
+        
+        
+        
+        // Адаптация к изменению размера окна
+        window.addEventListener('resize', function() {
+            // Пересчитываем позиции строк при изменении размера окна
+            const rows = document.querySelectorAll('.text-row');
+            rows.forEach((row, i) => {
+                row.style.top = `${i * rowHeight}px`;
+            });
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>

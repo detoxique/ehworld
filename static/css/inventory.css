@@ -145,7 +145,7 @@
         }
         
         .auction-modal-content {
-            background: white;
+            background: #2b2b2b;
             padding: 30px;
             border-radius: 12px;
             width: 100%;
@@ -157,15 +157,18 @@
             font-size: 20px;
             margin-bottom: 20px;
             font-weight: 600;
+            color: white;
         }
         
         .auction-input {
+            background: #161616;
             width: 100%;
             padding: 12px 15px;
-            border: 1px solid #ddd;
+            border: 1px solid #505050;
             border-radius: 8px;
             margin-bottom: 20px;
             font-size: 16px;
+            color: white;
         }
         
         .auction-buttons {
@@ -188,6 +191,6 @@
         }
         
         .auction-cancel {
-            background: #f8f9fa;
-            color: #6c757d;
+            background: #8b8b8b;
+            color: #ffffff;
         }

@@ -67,7 +67,7 @@ func Run() {
 	r.HandleFunc("/api/case-rewards/{id}", handlers.AuthMiddleware(handlers.GetCaseRewardsHandler)).Methods("GET")
 	r.HandleFunc("/api/case-open/{id}", handlers.AuthMiddleware(handlers.OpenCaseHandler)).Methods("POST")
 	r.HandleFunc("/api/apply-badge/{id}", handlers.AuthMiddleware(handlers.ApplyBadgeHandler)).Methods("POST")
-	//r.HandleFunc("/api/apply-item/{id}", handlers.AuthMiddleware(handlers.ApplyItem)).Methods("POST")
+	r.HandleFunc("/api/apply-item/{id}", handlers.AuthMiddleware(handlers.ApplyItem)).Methods("POST")
 
 	// Модераторские API
 	r.HandleFunc("/api/moderation/posts/{page}", handlers.ModeratorMiddleware(handlers.GetModerationPostsHandler)).Methods("GET")

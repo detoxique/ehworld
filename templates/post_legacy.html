@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ehworld</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/css/avatar.css">
+    <link rel="stylesheet" href="../static/css/post.css">
+    <link rel="stylesheet" href="../static/css/header.css">
+</head>
+<body>
+    <header class="header">
+        <a href="/main" class="logo">
+            <img src="../static/img/EhWorld.svg" width="128">
+        </a>
+        
+        <div class="nav-links">
+            <a href="/main">Главная</a>
+            <a href="/feed">Лента</a>
+            <a href="/upload">Загрузить</a>
+        </div>
+        
+        <div class="search-container">
+            <input 
+                type="search" 
+                class="search-box" 
+                placeholder="Поиск..."
+            >
+
+            <div class="avatar-dropdown">
+            <img src="{{.User.ProfileImageURL}}" alt="Аватар" class="user-avatar" id="avatarDropdown">
+            <div class="dropdown-content" id="dropdownContent">
+                <div class="user-info">
+                    <span class="username">{{.User.DisplayName}}</span>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a href="/profile" class="dropdown-link">
+                    Профиль
+                </a>
+                <a href="/settings" class="dropdown-link">
+                    Настройки
+                </a>
+                <a href="/logout" class="dropdown-link logout-button">
+                    Выйти
+                </a>
+            </div>
+        </div>
+        </div>
+    </header>
+
+    <div class="container-md post-container">
+        <div class="post-header">
+            <a href="/{{ .File.AuthorName }}" class="author-link">
+                <img src="{{ .File.AuthorProfileImageURL }}" alt="{{ .File.AuthorName }}" class="post-author-avatar">
+                <span class="post-author-name">{{ .File.AuthorName }}</span>
+            </a>
+        </div>
+
+        <div class="media-container">
+            {{ if isVideo .File.FileName }}
+            <video controls>
+                <source src="../static/uploads/{{ .File.FileName }}" type="video/mp4">
+            </video>
+            {{ else }}
+            <img src="../static/uploads/{{ .File.FileName }}" alt="{{ .File.Title }}">
+            {{ end }}
+        </div>
+
+        <div class="post-info">
+            <h1>{{ .File.Title }}</h1>
+            
+            <div class="post-footer">
+                <button id="likeBtn" class="like-button {{ if .HasLiked }}liked{{ end }}">
+                    ❤️ <span id="likesCount">{{ .File.Likes }}</span>
+                </button>
+                <span class="views-count">👁️ {{ .File.Views }}</span>
+            </div>
+        </div>
+
+        <div class="comments-section">
+            <h2>Комментарии</h2>
+            <form id="commentForm">
+                <textarea placeholder="Ваш комментарий..." required></textarea>
+                <button type="submit">Отправить</button>
+            </form>
+            
+            <div id="commentsList">
+                {{ range .Comments }}
+                <div class="comment" data-comment-id="{{ .ID }}">
+                    <img src="{{ .AuthorProfileImageURL }}" alt="{{ .AuthorName }}" class="comment-avatar">
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <a href="/{{ .AuthorName }}" class="comment-author">{{ .AuthorName }}</a>
+                            <span class="comment-time">{{ formatTimeAgo .CreatedAt }}</span>
+                            
+                            <!-- Кнопка меню (три точки) -->
+                            <div class="comment-actions">
+                                <button class="comment-menu-toggle">⋮</button>
+                                <div class="comment-menu">
+                                    <button class="comment-edit" data-comment-id="{{ .ID }}">Изменить</button>
+                                    <button class="comment-delete" data-comment-id="{{ .ID }}">Удалить</button>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="comment-text">{{ .Text }}</p>
+                        <div class="comment-footer">
+                            <button id="likeCommentBtn" class="comment-like {{ if .HasLiked }}liked{{ end }}" data-comment-id="{{ .ID }}">
+                                ❤️ <span id="commentLikesCount">{{ .Likes }}</span>
+                            </button>
+                            <button class="comment-reply">Ответить</button>
+                        </div>
+
+                        <div class="comment-reply-form" data-parent-id="{{ .ID }}" style="display: none;">
+                            <textarea placeholder="Ваш ответ..." class="reply-textarea"></textarea>
+                            <div class="reply-controls">
+                                <button class="btn-send-reply">Отправить</button>
+                                <button class="btn-cancel-reply">Отмена</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Лайки
+    document.getElementById('likeBtn').addEventListener('click', function() {
+        const isLiked = this.classList.contains('liked');
+        if (!isLiked) {
+            fetch(`/api/like/{{ .File.ID }}`, { method: 'POST' })
+            .then(response => {
+                if (response.ok) {
+                    this.classList.toggle('liked');
+                    
+                    const likesCount = document.getElementById('likesCount');
+                    likesCount.textContent = isLiked ? 
+                        parseInt(likesCount.textContent) - 1 : 
+                        parseInt(likesCount.textContent) + 1;
+                }
+            });
+        }
+        else {
+            fetch(`/api/like/{{ .File.ID }}`, { method: 'DELETE' })
+            .then(response => {
+                if (response.ok) {
+                    this.classList.toggle('liked');
+                    
+                    const likesCount = document.getElementById('likesCount');
+                    likesCount.textContent = isLiked ? 
+                        parseInt(likesCount.textContent) - 1 : 
+                        parseInt(likesCount.textContent) + 1;
+                }
+            });
+        }
+        
+    });
+
+    // Лайк комментария
+    // document.getElementById('likeCommentBtn').addEventListener('click', function() {
+    //     const isLiked = this.classList.contains('liked');
+    //     const commentID = this.dataset.commentId
+    //     if (!isLiked) {
+    //         fetch(`/api/likecomment/${commentID}`, { method: 'POST' })
+    //         .then(response => {
+    //             if (response.ok) {
+    //                 this.classList.toggle('liked');
+                    
+    //                 const likesCount = document.getElementById('commentLikesCount');
+    //                 likesCount.textContent = isLiked ? 
+    //                     parseInt(likesCount.textContent) - 1 : 
+    //                     parseInt(likesCount.textContent) + 1;
+    //             }
+    //         });
+    //     }
+    //     else {
+    //         fetch(`/api/likecomment/${commentID}`, { method: 'DELETE' })
+    //         .then(response => {
+    //             if (response.ok) {
+    //                 this.classList.toggle('liked');
+                    
+    //                 const likesCount = document.getElementById('commentLikesCount');
+    //                 likesCount.textContent = isLiked ? 
+    //                     parseInt(likesCount.textContent) - 1 : 
+    //                     parseInt(likesCount.textContent) + 1;
+    //             }
+    //         });
+    //     }
+    // });
+    document.querySelectorAll('.comment-like').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+            
+            const isLiked = this.classList.contains('liked');
+        const commentID = this.dataset.commentId
+        if (!isLiked) {
+            fetch(`/api/likecomment/${commentID}`, { method: 'POST' })
+            .then(response => {
+                if (response.ok) {
+                    this.classList.toggle('liked');
+                    
+                    const likesCount = btn.querySelector('span');
+                    likesCount.textContent = isLiked ? 
+                        parseInt(likesCount.textContent) - 1 : 
+                        parseInt(likesCount.textContent) + 1;
+                }
+            });
+        }
+        else {
+            fetch(`/api/likecomment/${commentID}`, { method: 'DELETE' })
+            .then(response => {
+                if (response.ok) {
+                    this.classList.toggle('liked');
+                    
+                    const likesCount = btn.querySelector('span');
+                    likesCount.textContent = isLiked ? 
+                        parseInt(likesCount.textContent) - 1 : 
+                        parseInt(likesCount.textContent) + 1;
+                }
+            });
+        }
+        });
+    });
+
+    // Отправка комментария
+    document.getElementById('commentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const text = this.querySelector('textarea').value;
+        const parentId = this.dataset.parentId || null;
+        
+        fetch(`/api/comment/{{ .File.ID }}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ text, parent_id: parentId })
+        })
+        .then(response => response.json())
+        .then(comment => {
+            const now = new Date();
+            const commentHTML = `
+                <div class="comment" data-comment-id="${comment.id}">
+                    <img src="${comment.author_image}" alt="${comment.author_name}" class="comment-avatar">
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <a href="/${comment.author_name}" class="comment-author">${comment.author_name}</a>
+                            <span class="comment-time">только что</span>
+                            
+                            <!-- Кнопка меню -->
+                            <div class="comment-actions">
+                                <button class="comment-menu-toggle">⋮</button>
+                                <div class="comment-menu">
+                                    <button class="comment-edit" data-comment-id="">Изменить</button>
+                                    <button class="comment-delete" data-comment-id="${comment.id}">Удалить</button>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="comment-text">${comment.text}</p>
+                        <div class="comment-footer">
+                            <button class="comment-like" data-comment-id="${comment.id}">
+                                ❤️ <span>${comment.likes}</span>
+                            </button>
+                            <button class="comment-reply">Ответить</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('commentsList').insertAdjacentHTML('afterbegin', commentHTML);
+            this.reset();
+            this.removeAttribute('data-parent-id');
+        });
+    });
+
+    // Меню комментария
+    document.querySelectorAll('.comment-menu-toggle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const menu = this.nextElementSibling;
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        });
+    });
+
+    // // Закрытие меню при клике в любом месте
+    // document.addEventListener('click', function() {
+    //     document.querySelectorAll('.comment-menu').forEach(menu => {
+    //         menu.style.display = 'none';
+    //     });
+    // });
+
+    // Удаление комментария
+    document.querySelectorAll('.comment-delete').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+            
+            fetch(`/api/comment/${commentId}`, { 
+                    method: 'DELETE' 
+                }).then(response => {
+                    if (response.ok) {
+                        document.querySelector(`.comment[data-comment-id="${commentId}"]`).remove();
+                    }
+                });
+        });
+    });
+
+    // Редактирование комментария
+    document.querySelectorAll('.comment-edit').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+            const commentElement = document.querySelector(`.comment[data-comment-id="${commentId}"]`);
+            const textElement = commentElement.querySelector('.comment-text');
+            const originalText = textElement.textContent;
+            
+            // Заменяем текст на textarea для редактирования
+            const textarea = document.createElement('textarea');
+            textarea.value = originalText;
+            textarea.classList.add('edit-textarea');
+            
+            // Создаем кнопки управления
+            const saveButton = document.createElement('button');
+            saveButton.textContent = 'Сохранить';
+            saveButton.classList.add('btn-save');
+            
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = 'Отмена';
+            cancelButton.classList.add('btn-cancel');
+            
+            const controls = document.createElement('div');
+            controls.classList.add('edit-controls');
+            controls.appendChild(saveButton);
+            controls.appendChild(cancelButton);
+            
+            // Заменяем текст
+            textElement.replaceWith(textarea);
+            textarea.after(controls);
+            
+            // Обработка сохранения
+            saveButton.addEventListener('click', function() {
+                const newText = textarea.value;
+                
+                fetch(`/api/comment/${commentId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: newText })
+                }).then(response => {
+                    if (response.ok) {
+                        textElement.textContent = newText;
+                        textarea.replaceWith(textElement);
+                        controls.remove();
+                    }
+                });
+            });
+            
+            // Обработка отмены
+            cancelButton.addEventListener('click', function() {
+                textarea.replaceWith(textElement);
+                controls.remove();
+            });
+        });
+    });
+
+    // Ответ на комментарий
+    document.querySelectorAll('.comment-reply').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const comment = this.closest('.comment');
+        const commentId = comment.dataset.commentId;
+        const replyForm = comment.querySelector('.comment-reply-form');
+        
+        // Скрыть все другие открытые формы ответа
+        document.querySelectorAll('.comment-reply-form').forEach(form => {
+            if (form !== replyForm) form.style.display = 'none';
+        });
+        
+        // Показать/скрыть форму ответа
+        replyForm.style.display = replyForm.style.display === 'block' ? 'none' : 'block';
+    });
+});
+
+    // Отправка ответа на комментарий
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-send-reply')) {
+            const replyForm = e.target.closest('.comment-reply-form');
+            const parentId = replyForm.dataset.parentId;
+            const text = replyForm.querySelector('.reply-textarea').value;
+            const fileID = '{{ .File.ID }}';
+            
+            fetch(`/api/comment/${fileID}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ text, parent_id: parentId })
+            })
+            .then(response => response.json())
+            .then(comment => {
+                // Добавление нового комментария в интерфейс
+                const now = new Date();
+                const commentHTML = `
+                    <div class="comment" data-comment-id="${comment.id}">
+                        <img src="${comment.author_image}" alt="${comment.author_name}" class="comment-avatar">
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <a href="/${comment.author_name}" class="comment-author">${comment.author_name}</a>
+                                <span class="comment-time">только что</span>
+                                
+                                <!-- Кнопка меню -->
+                                <div class="comment-actions">
+                                    <button class="comment-menu-toggle">⋮</button>
+                                    <div class="comment-menu">
+                                        <button class="comment-edit" data-comment-id="">Изменить</button>
+                                        <button class="comment-delete" data-comment-id="${comment.id}">Удалить</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="comment-text">${comment.text}</p>
+                            <div class="comment-footer">
+                                <button class="comment-like" data-comment-id="${comment.id}">
+                                    ❤️ <span>${comment.likes}</span>
+                                </button>
+                                <button class="comment-reply">Ответить</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('commentsList').insertAdjacentHTML('afterbegin', commentHTML);
+                this.reset();
+                this.removeAttribute('data-parent-id');
+                replyForm.style.display = 'none';
+                replyForm.querySelector('.reply-textarea').value = '';
+            });
+        }
+        
+        if (e.target.classList.contains('btn-cancel-reply')) {
+            const replyForm = e.target.closest('.comment-reply-form');
+            replyForm.style.display = 'none';
+            replyForm.querySelector('.reply-textarea').value = '';
+        }
+    });
+    </script>
+</body>
+</html>

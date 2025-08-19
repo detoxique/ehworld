@@ -2453,11 +2453,11 @@ func OpenCase(caseID, userID int) (*models.CaseReward, error) {
 func GetUserInventory(userID int) ([]models.CaseReward, error) {
 	var result []models.CaseReward
 
-	// Поиск пользователей
 	rewards, err := db.Query(`
-			SELECT cases_rewards.id, cases_rewards.type
-			FROM cases_rewards, inventory
-			WHERE inventory.user_id = $1 AND inventory.reward_id = cases_rewards.id
+			SELECT DISTINCT cr.id, cr.type
+			FROM cases_rewards cr
+			JOIN inventory inv ON inv.reward_id = cr.id
+			WHERE inv.user_id = $1
 		`, userID)
 	if err == nil {
 		defer rewards.Close()
@@ -2468,9 +2468,12 @@ func GetUserInventory(userID int) ([]models.CaseReward, error) {
 				case "badge":
 					var title string
 					err = db.QueryRow(`
-					SELECT cases_rewards.badge_id, badges.image, shop_items.title
-					FROM cases_rewards, badges, shop_items
-					WHERE cases_rewards.id = $1 AND cases_rewards.badge_id = badges.id AND shop_items.badge_id = badges.id
+					SELECT DISTINCT ON (cr.badge_id) cr.badge_id, b.image, si.title
+					FROM cases_rewards cr
+					JOIN badges b ON cr.badge_id = b.id
+					JOIN shop_items si ON b.id = si.badge_id
+					WHERE cr.id = $1
+					ORDER BY cr.badge_id;
 					`, r.ID).Scan(&r.BadgeID, &r.Image, &title)
 					if err != nil {
 						return nil, err
@@ -2512,14 +2515,65 @@ func ApplyBadge(badgeID, userID int) error {
 	}
 }
 
-// func ApplyItem(itemID, userID int, lot_name string) error {
-// 	var item models.CaseReward
-// 	err := db.QueryRow(`
-// 					SELECT auk_value
-// 					FROM cases_rewards
-// 					WHERE id = $1
-// 					`, itemID).Scan(&r.AukValue)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// }
+func UserHasItem(userID, itemID int) bool {
+	var hasItem int
+	err := db.QueryRow(`
+					SELECT COUNT(*)
+					FROM inventory
+					WHERE user_id = $1 AND reward_id = $2
+					`, userID, itemID).Scan(&hasItem)
+	if err != nil {
+		return false
+	}
+
+	if hasItem > 0 {
+		return true
+	}
+	return false
+}
+
+func ApplyItem(itemID, userID int, lot_name string) error {
+	var item models.CaseReward
+	err := db.QueryRow(`
+					SELECT type
+					FROM cases_rewards
+					WHERE id = $1
+					`, itemID).Scan(&item.Type)
+	if err != nil {
+		return err
+	}
+
+	// Проверка на наличие предмета в инвентаре
+	if UserHasItem(userID, itemID) {
+		switch item.Type {
+		case "vip":
+			user, err := GetUserByID(userID)
+			if err != nil {
+				return err
+			}
+			err = GrantVIP(user.Login)
+			if err != nil {
+				return err
+			}
+
+			_, err = db.Exec("DELETE FROM inventory WHERE user_id = $1 AND reward_id = $2", userID, itemID)
+			if err != nil {
+				return err
+			}
+		case "auk":
+			_, err = db.Exec("INSERT INTO auk_submissions (user_id, lot) VALUES ($1, $2)", userID, lot_name)
+			if err != nil {
+				return err
+			}
+
+			_, err = db.Exec("DELETE FROM inventory WHERE user_id = $1 AND reward_id = $2", userID, itemID)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		return errors.New("item is not in inventory")
+	}
+
+	return nil
+}

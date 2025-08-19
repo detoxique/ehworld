@@ -1,0 +1,149 @@
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    twitch_id TEXT UNIQUE NOT NULL,
+    login TEXT NOT NULL,
+    display_name TEXT NOT NULL,
+    profile_image_url TEXT,
+    email TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    role TEXT DEFAULT 'user',
+    rating INT DEFAULT 0,
+    streamer_mode BOOLEAN DEFAULT false,
+    is_banned BOOLEAN DEFAULT false,
+    badge_id INT REFERENCES badges(id) ON DELETE CASCADE,
+    followers INT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE files (
+    id SERIAL PRIMARY KEY,
+    file_name TEXT UNIQUE NOT NULL,
+    title TEXT,
+    file_size INT,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_public BOOLEAN DEFAULT false,
+    is_moderated BOOLEAN DEFAULT false,
+    thumbnail TEXT,
+    views INT DEFAULT 0,
+    fucks INT DEFAULT 0,
+    likes INT DEFAULT 0,
+    type TEXT NOT NULL DEFAULT 'file' CHECK (type IN('file', 'clip')),
+    description TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE last_seen (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    post_id INT NOT NULL REFERENCES files(id) ON DELETE CASCADE
+);
+
+CREATE TABLE likes (
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    file_id INTEGER REFERENCES files(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, file_id)
+);
+
+CREATE TABLE comments (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id),
+    file_id INT NOT NULL REFERENCES files(id),
+    text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    likes INT DEFAULT 0,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    parent_id INT,
+    updated_at TIMESTAMP
+);
+
+CREATE TABLE comments_likes (
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    comment_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, comment_id)
+);
+
+CREATE TABLE badges (
+    id SERIAL PRIMARY KEY,
+    image TEXT NOT NULL
+);
+
+CREATE TABLE users_items (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    item_id INTEGER REFERENCES shop_items(id) ON DELETE CASCADE
+);
+
+CREATE TABLE shop_items (
+    id SERIAL PRIMARY KEY,
+    type TEXT NOT NULL CHECK (type IN('badge', 'vip')),
+    badge_id INT REFERENCES badges(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    cost INT NOT NULL,
+    image TEXT NOT NULL
+);
+
+CREATE TABLE mod_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    action TEXT NOT NULL
+);
+
+CREATE TABLE notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    author_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    notification TEXT NOT NULL DEFAULT '',
+    image TEXT DEFAULT '',
+    mark_seen BOOL DEFAULT FALSE,
+    link TEXT DEFAULT '',
+    created_at TIMESTAMP DEFAULT NOW(),
+    file_id INTEGER REFERENCES files(id) ON DELETE CASCADE,
+    type TEXT NOT NULL CHECK (type IN('like', 'fuck', 'approved', 'rejected', 'system', 'message'))
+);
+
+CREATE TABLE fucks (
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    file_id INTEGER REFERENCES files(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, file_id)
+);
+
+
+CREATE TABLE admin_tokens (
+    id SERIAL PRIMARY KEY,
+    access_token TEXT,
+    refresh_token TEXT
+);
+
+CREATE TABLE follows (
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    target_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, target_id)
+);
+
+CREATE TABLE cases (
+    id SERIAL PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    price INTEGER NOT NULL,
+    image TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE cases_rewards (
+    id SERIAL PRIMARY KEY,
+    type TEXT NOT NULL CHECK (type IN ('vip', 'badge', 'auk')),
+    badge_id INT,
+    auk_value INT,
+    probability REAL NOT NULL CHECK(probability >= 0 AND probability <= 1),
+    case_id INT NOT NULL REFERENCES cases(id) ON DELETE CASCADE
+);
+
+CREATE TABLE inventory (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    reward_id INTEGER REFERENCES cases_rewards(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_files_moderation ON files (is_public, uploaded_at);
+CREATE INDEX idx_last_seen_user_post ON last_seen(user_id, post_id);
+
+INSERT INTO shop_items (type, title, cost, image) VALUES ('vip', 'Статус VIP в чате', 100, 'https://www.ehworld.ru/static/img/vip.png');

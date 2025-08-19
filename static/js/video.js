@@ -179,6 +179,8 @@ class VideoPlayer {
         }
     }
     
+
+    //ваще это бы переписать всё нормально, но прост заебет фуллскрин кривой
     toggleFullscreen() {
         const isFullscreen = document.fullscreenElement || 
                             document.webkitFullscreenElement ||
@@ -216,9 +218,15 @@ class VideoPlayer {
         if (this.video.classList.contains('fullscreen-mode')) {
             this.video.style.width = '100vw';
             this.video.style.height = '100vh';
+
+            this.fullscreenBtn.querySelector('.fullscreen-open').style.display = 'none';
+            this.fullscreenBtn.querySelector('.fullscreen-close').style.display = 'block';
         } else {
             this.video.style.width = '';
             this.video.style.height = '';
+
+            this.fullscreenBtn.querySelector('.fullscreen-open').style.display = 'none';
+            this.fullscreenBtn.querySelector('.fullscreen-close').style.display = 'block';
         }
     }
     

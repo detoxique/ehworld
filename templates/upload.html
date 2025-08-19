@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ehworld</title>
+    <link rel="icon" href="../static/img/icon.png" type="image">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/css/avatar.css">
+    <link rel="stylesheet" href="../static/css/header.css">
+    <style>
+        /* Стили для зоны загрузки */
+        .upload-container {
+            background: rgba(48, 48, 48, 0.6);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .title {
+            margin-top: 24px;
+        }
+
+        .title a {
+            font-weight: 600;
+            font-size: 32px;
+        }
+        
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #b6b6b6;
+            background: rgba(99, 99, 99, 0.2);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .upload-text {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 10px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-info {
+            background: rgba(44, 44, 44, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .file-name {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.85);
+            word-break: break-all;
+        }
+        
+        .file-size {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 5px;
+        }
+        
+        .progress-container {
+            margin: 25px 0;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            border-radius: 5px;
+            background: #8225fc;
+            transition: width 0.3s ease;
+        }
+        
+        .form-label {
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .title-input {
+            background: rgba(49, 49, 49, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .title-input:focus {
+            background: rgba(31, 31, 31, 0.8);
+            border-color: #d9b8ff;
+            box-shadow: 0 0 0 0.2rem rgba(103, 0, 172, 0.25);
+            outline: none;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .description-input {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            margin-bottom: 10px;
+            resize: vertical;
+        }
+
+        .description-input:focus {
+            background: rgba(31, 31, 31, 0.8);
+            border-color: #d9b8ff;
+            box-shadow: 0 0 0 0.2rem rgba(103, 0, 172, 0.25);
+            outline: none;
+        }
+        
+        .btn-save {
+            background: #8225fc;
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        
+        .btn-save:hover {
+            background: #7a00c7;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(103, 0, 172, 0.4);
+        }
+        
+        .btn-save:disabled {
+            background: rgba(103, 0, 172, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        
+        .btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .title, .section {
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            animation-delay: 0.3s;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .title, .section, .cookie-notice {
+                animation: none !important;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+        }
+
+        .or-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 20px 0;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .or-divider span {
+            padding: 0 15px;
+            font-size: 14px;
+        }
+        
+        .link-container {
+            margin-top: 25px;
+        }
+    </style>
+</head>
+<body>
+    <script src="../static/js/search.js"></script>
+    <script src="../static/js/notifications.js"></script>
+    <header class="header">
+        <a href="/main" class="logo">
+            <img src="../static/img/EhWorld.svg" width="148">
+        </a>
+        
+        <div class="nav-links">
+            <a href="/main">Главная</a>
+            <a href="/feed">Лента</a>
+            <a href="/shop">Магазин</a>
+            <a href="/inventory">Инвентарь</a>
+            <a href="#">Загрузить</a>
+            {{ if checkModRole .ID}}
+            <a href="/moderator">Модерация</a>
+            {{ end}}
+            {{ if checkAdminRole .ID}}
+            <a href="/admin">Админ панель</a>
+            <a href="/queue">Очередь запросов</a>
+            {{ end}}
+        </div>
+        
+        <div class="search-container">
+            <div class="search-box-container">
+                <input 
+                    id="searchInput"
+                    type="search" 
+                    class="search-box" 
+                    placeholder="Поиск..."
+                >
+                <div class="search-results" id="searchResults"></div>
+            </div>
+
+            <div class="notification-container">
+                <button class="notification-button" id="notificationButton">
+                    {{ if hasNotifications .ID }}
+                        <img src="../static/img/notifications-active.svg" width="32" height="32">
+                    {{ else }}
+                        <img src="../static/img/notifications-1.svg" width="32" height="32">
+                    {{ end}}
+                </button>
+                
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <span>Уведомления</span>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <!-- Уведомления будут загружаться здесь -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="avatar-dropdown">
+            <img src="{{.ProfileImageURL}}" alt="Аватар" class="user-avatar" id="avatarDropdown">
+            <div class="dropdown-content" id="dropdownContent">
+                <div class="user-info">
+                    <span class="username">{{.DisplayName}}</span>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a href="/profile" class="dropdown-link">
+                    Профиль
+                </a>
+                <a href="/settings" class="dropdown-link">
+                    Настройки
+                </a>
+                <a href="/logout" class="dropdown-link logout-button">
+                    Выйти
+                </a>
+            </div>
+        </div>
+        </div>
+    </header>
+
+    <div class="container-md">
+        <div class="title">
+            <a>Загрузка</a>
+        </div>
+
+        <div class="section">
+            <div class="upload-container">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <p class="upload-text">Перетащите файл сюда или нажмите, чтобы выбрать (Размер файла до 100МБ)</p>
+                    <input type="file" id="fileInput" class="file-input">
+                </div>
+                
+                <div class="file-info" id="fileInfo">
+                    <div class="file-name" id="fileName"></div>
+                    <div class="file-size" id="fileSize"></div>
+                </div>
+                
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <div class="or-divider">
+                    <span>ИЛИ</span>
+                </div>
+
+                <div class="link-container">
+                    <label class="form-label">Ссылка на Twitch клип</label>
+                    <input type="text" id="clipLink" class="title-input" placeholder="https://clips.twitch.tv/...">
+                </div>
+                
+                <label class="form-label">Название</label>
+                <input type="text" id="titleInput" class="title-input" placeholder="Введите название">
+
+                <label class="form-label">Описание</label>
+                <textarea type="text" id="descriptionInput" class="description-input" placeholder="Введите описание"></textarea>
+                
+                <div class="action-buttons">
+                    <button id="saveBtn" class="btn-save" disabled>Сохранить</button>
+                    <button id="cancelBtn" class="btn-cancel">Отмена</button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- Уведомление о Cookie -->
+    <div class="cookie-notice" id="cookieNotice">
+        <a>Файлы Cookie</a>
+        <p>Используя наш сайт, вы даете согласие на использование технических файлов Cookie. Мы используем минимальный набор информации, необходимый для функционирования сайта.</p>
+        <button class="cookie-btn" id="cookieButton">Good nice</button>
+    </div>
+    
+    <script>
+        // Обработчик для кнопки Cookie
+        document.getElementById('cookieButton').addEventListener('click', function() {
+            const cookieNotice = document.getElementById('cookieNotice');
+            
+            // Добавляем класс для запуска анимации исчезновения
+            cookieNotice.classList.add('hide');
+            
+            // После завершения анимации скрываем элемент и сохраняем согласие
+            setTimeout(() => {
+                cookieNotice.style.display = 'none';
+                localStorage.setItem('cookieAccepted', 'true');
+            }, 500); // Должно соответствовать времени анимации (0.5s)
+        });
+        
+        // Проверяем, было ли уже принято соглашение
+        window.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('cookieAccepted') === 'true') {
+                document.getElementById('cookieNotice').style.display = 'none';
+            }
+        });
+        
+        // Адаптация к изменению размера окна
+        window.addEventListener('resize', function() {
+            // Пересчитываем позиции строк при изменении размера окна
+            const rows = document.querySelectorAll('.text-row');
+            rows.forEach((row, i) => {
+                row.style.top = `${i * rowHeight}px`;
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const fileInfo = document.getElementById('fileInfo');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const titleInput = document.getElementById('titleInput');
+            const descriptionInput = document.getElementById('descriptionInput');
+            const clipLink = document.getElementById('clipLink');
+            const saveBtn = document.getElementById('saveBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            
+            let selectedFile = null;
+            let uploadType = null; // 'file' или 'clip'
+            
+            // Обработчики событий перетаскивания
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                if (e.dataTransfer.files.length) {
+                    handleFileSelection(e.dataTransfer.files[0]);
+                }
+            });
+            
+            // Клик по области загрузки
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            // Выбор файла через input
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    handleFileSelection(e.target.files[0]);
+                }
+            });
+            
+            // Обработка выбранного файла
+            function handleFileSelection(file) {
+                selectedFile = file;
+                
+                // Отображаем информацию о файле
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                fileInfo.style.display = 'block';
+                
+                // Активируем кнопку сохранения если есть название
+                saveBtn.disabled = !titleInput.value.trim();
+            }
+            
+            // Форматирование размера файла
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            // Валидация формы
+            function validateForm() {
+                const hasTitle = titleInput.value.trim().length > 0;
+                const hasFile = selectedFile !== null;
+                const hasClip = clipLink.value.trim().length > 0;
+                
+                // Проверяем что заполнено либо файл, либо ссылка + название
+                saveBtn.disabled = !(hasTitle && (hasFile || hasClip));
+                
+                // Определяем тип загрузки
+                if (hasFile) {
+                    uploadType = 'file';
+                } else if (hasClip) {
+                    uploadType = 'clip';
+                }
+            }
+            
+            // Отслеживание ввода названия и ссылки
+            titleInput.addEventListener('input', validateForm);
+            clipLink.addEventListener('input', function() {
+                // При вводе ссылки сбрасываем файл
+                if (clipLink.value.trim() && selectedFile) {
+                    resetFileSelection();
+                }
+                validateForm();
+            });
+            
+            // Обработка кнопки сохранения
+    saveBtn.addEventListener('click', function() {
+                if (!titleInput.value.trim() || !(selectedFile || clipLink.value.trim())) return;
+                
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+                
+                // Запускаем загрузку в зависимости от типа
+                if (uploadType === 'file') {
+                    uploadFile();
+                } else {
+                    uploadClip();
+                }
+    });
+            
+            // загрузка файла на сервер
+            function uploadFile() {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('title', titleInput.value.trim());
+                formData.append('description', descriptionInput.value.trim());
+                
+                sendRequest(formData, '/api/upload');
+            }
+            
+            // Загрузка клипа
+            function uploadClip() {
+                const formData = new FormData();
+                formData.append('clipUrl', clipLink.value.trim());
+                formData.append('title', titleInput.value.trim());
+                formData.append('description', descriptionInput.value.trim());
+                
+                sendRequest(formData, '/api/upload/clip');
+            }
+            
+            // Общая функция отправки
+            function sendRequest(formData, url) {
+                const xhr = new XMLHttpRequest();
+                
+                // Отслеживаем прогресс только для файлов
+                if (uploadType === 'file') {
+                    xhr.upload.addEventListener('progress', function(e) {
+                        if (e.lengthComputable) {
+                            const percent = (e.loaded / e.total) * 100;
+                            progressBar.style.width = `${percent}%`;
+                        }
+                    });
+                } else {
+                    // Для клипов показываем индикатор процесса
+                    let progress = 0;
+                    const interval = setInterval(() => {
+                        progress = Math.min(progress + 5, 90);
+                        progressBar.style.width = `${progress}%`;
+                    }, 200);
+                    
+                    xhr.onload = function() {
+                        clearInterval(interval);
+                        handleResponse(xhr);
+                    };
+                }
+                
+                xhr.onload = function() {
+                    handleResponse(xhr);
+                };
+                
+                xhr.onerror = function() {
+                    alert('Ошибка сети');
+                    resetUploader();
+                };
+                
+                xhr.open('POST', url, true);
+                xhr.send(formData);
+            }
+            
+            // Обработка ответа сервера
+            function handleResponse(xhr) {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.id) {
+                            window.location.href = `/post/${response.id}`;
+                        } else {
+                            throw new Error('ID поста не получен');
+                        }
+                    } catch (e) {
+                        alert('Ошибка обработки ответа: ' + e.message);
+                        resetUploader();
+                    }
+                } else {
+                    alert('Ошибка загрузки: ' + xhr.responseText);
+                    resetUploader();
+                }
+            }
+            
+            // Сброс выбора файла
+            function resetFileSelection() {
+                selectedFile = null;
+                fileInput.value = '';
+                fileInfo.style.display = 'none';
+            }
+            
+            // Обработка кнопки отмены
+            cancelBtn.addEventListener('click', resetUploader);
+            
+            // Сброс всей формы
+            function resetUploader() {
+                resetFileSelection();
+                clipLink.value = '';
+                titleInput.value = '';
+                progressContainer.style.display = 'none';
+                saveBtn.disabled = true;
+                uploadType = null;
+            }
+        });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>

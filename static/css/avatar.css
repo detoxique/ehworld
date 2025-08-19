@@ -1,0 +1,145 @@
+:root {
+    --primary-dark: #083844;
+    --primary-medium: #0B5D51;
+    --primary-light: #c2c2c2;
+    --accent-pink: #9D3162;
+    --accent-red: #D5435A;
+    
+    --bg-dark: #0A1E23;
+    --bg-medium: #0D2A30;
+    --bg-light: #161616;
+    
+    --text-light: #FFFFFF;
+    --text-muted: #A0B2B8;
+    
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --transition: all 0.3s ease;
+}
+
+.avatar-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.avatar-dropdown::before {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 0;
+    width: 80%;
+    height: 20px;
+    background: transparent;
+}
+
+.user-menu-container {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center; /* Выравниваем по центру */
+}
+
+.user-avatar {
+    margin-left: 20px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    /* border: 3px solid var(--primary-light); */
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.user-avatar:hover {
+    transform: scale(1.08);
+    border-color: var(--accent-red);
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background: var(--bg-light);
+    min-width: 220px;
+    box-shadow: var(--card-shadow);
+    border-radius: 8px;
+    padding: 20px;
+    z-index: 1;
+    margin-top: 15px;
+    border: 1px solid var(--primary-light);
+    backdrop-filter: blur(10px);
+}
+
+.avatar-dropdown:hover .dropdown-content {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.avatar-dropdown:hover::before {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.username {
+    font-weight: bold;
+    color: var(--primary-light);
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+/* Стили для разделителя */
+.dropdown-divider {
+    height: 1px;
+    background: var(--primary-light);
+    margin: 15px 0;
+    width: 100%;
+}
+
+/* Стили для ссылок в меню */
+.dropdown-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.dropdown-link:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-light);
+}
+
+.dropdown-link img {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0.8);
+}
+
+/* Специальные стили для кнопки выхода */
+.logout-button {
+    color: #ff6b6b !important;
+}
+
+.logout-button:hover {
+    background: rgba(213, 67, 90, 0.15) !important;
+    color: #ff8e8e !important;
+}
+
+.logout-button img {
+    filter: brightness(1.2);
+}

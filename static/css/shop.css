@@ -1,0 +1,412 @@
+/* static/css/shop.css */
+.balance-container {
+    background: rgba(30, 30, 30, 0.6);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 30px 0 40px;
+    border: 1px solid rgba(130, 37, 252, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.current-badge {
+    display: flex;
+}
+
+.current-badge h2 {
+    font-weight: 800;
+}
+
+.balance-amount h2 {
+    font-weight: 800;
+}
+
+.balance-amount h3 {
+    font-size: 28px;
+    font-weight: 500;
+    color: #8225fc;
+    /* display: flex; */
+    align-items: center;
+    gap: 10px;
+}
+
+.section {
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: fadeInUp 0.4s ease forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+.section:nth-child(2) {
+    animation-delay: 0.4s;
+}
+
+.section:nth-child(3) {
+    animation-delay: 0.6s;
+}
+
+.balance-title h2 {
+    font-weight: 700;
+}
+
+.badge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    margin-bottom: 60px;
+}
+
+.badge-card {
+    background: rgba(30, 30, 30, 0.6);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+}
+
+.badge-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(130, 37, 252, 0.15);
+    border-color: rgba(130, 37, 252, 0.5);
+}
+
+.badge-image {
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+}
+
+.badge-image img {
+    max-height: 140px;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.badge-content {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.badge-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: white;
+}
+
+.badge-description {
+    color: rgba(255, 255, 255, 0.7);
+    flex-grow: 1;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.badge-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.badge-price {
+    font-size: 22px;
+    font-weight: 700;
+    color: #8225fc;
+}
+
+.buy-button, .open-case-button, .case-button, .apply-button {
+    background: #8225fc;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.buy-button:hover, .open-case-button:hover, .case-button:hover, .apply-button:hover {
+    background: #6a1fc9;
+    transform: translateY(-2px);
+}
+
+.buy-button:disabled, .open-case-button:disabled, .case-button:disabled, .apply-button:disabled {
+    background: rgba(130, 37, 252, 0.3);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.owned-badge {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+    padding: 8px 15px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.current-badge {
+    display: flex;
+    gap: 5px;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.badge-card {
+    animation: fadeIn 0.6s ease forwards;
+    opacity: 0;
+}
+
+.section h2{
+    margin-bottom: 20px;
+}
+
+#caseDescription {
+    color: #fff;
+    font-weight: 400;
+    font-size: 16px;
+}
+
+.badge-card:nth-child(1) { animation-delay: 0.1s; }
+.badge-card:nth-child(2) { animation-delay: 0.2s; }
+.badge-card:nth-child(3) { animation-delay: 0.3s; }
+.badge-card:nth-child(4) { animation-delay: 0.4s; }
+.badge-card:nth-child(5) { animation-delay: 0.5s; }
+.badge-card:nth-child(6) { animation-delay: 0.6s; }
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.modal-content {
+    background: rgba(30, 30, 30, 0.95);
+    border-radius: 16px;
+    margin: 5% auto;
+    padding: 30px;
+    border: 2px solid #8225fc;
+    width: 80%;
+    max-width: 800px;
+    position: relative;
+    animation: modalAppear 0.4s ease;
+}
+
+@keyframes modalAppear {
+    from { opacity: 0; transform: translateY(-50px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    color: #fff;
+    font-weight: 700;
+    font-size: 28px;
+}
+
+.close {
+    color: #aaa;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close:hover {
+    color: #8225fc;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+#modalCaseImage {
+    max-width: 200px;
+    max-height: 200px;
+    margin: 0 auto;
+    display: block;
+}
+
+#modalCaseDescription {
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+.rewards-section {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(130, 37, 252, 0.3);
+}
+
+.rewards-section h3 {
+    color: #fff;
+    font-size: 20px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.rewards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.reward-card {
+    background: rgba(40, 40, 40, 0.8);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    transition: transform 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reward-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(130, 37, 252, 0.5);
+}
+
+.reward-card img {
+    max-width: 80px;
+    max-height: 80px;
+    margin-bottom: 8px;
+}
+
+.reward-card h4 {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+}
+
+#openCaseBtn {
+    margin: 20px auto 0;
+    padding: 12px 30px;
+    font-size: 18px;
+    display: block;
+}
+
+/* Анимация выпадения награды */
+.reward-popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    animation: rewardAppear 0.5s ease;
+}
+
+@keyframes rewardAppear {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+.reward-content {
+    background: rgba(30, 30, 30, 0.95);
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+    border: 3px solid #8225fc;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    animation: rewardScale 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes rewardScale {
+    0% { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.reward-item {
+    margin: 30px 0;
+    padding: 30px;
+    background: rgba(130, 37, 252, 0.1);
+    border-radius: 16px;
+    border: 2px solid #8225fc;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(130, 37, 252, 0.4); }
+    70% { box-shadow: 0 0 0 20px rgba(130, 37, 252, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(130, 37, 252, 0); }
+}
+
+#rewardImage {
+    max-width: 200px;
+    max-height: 200px;
+    margin: 0 auto 20px;
+    display: block;
+}
+
+#rewardTitle {
+    color: #fff;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 10px 0;
+    color: #ffd700;
+}
+
+#closeRewardBtn {
+    background: #8225fc;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 40px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s;
+}
+
+#closeRewardBtn:hover {
+    background: #6a1fc9;
+    transform: scale(1.05);
+}

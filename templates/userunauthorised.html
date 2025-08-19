@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ehworld</title>
+    <link rel="icon" href="../static/img/icon.png" type="image">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/css/avatar.css">
+    <link rel="stylesheet" href="../static/css/profile.css">
+    <link rel="stylesheet" href="../static/css/header.css">
+    <link rel="stylesheet" href="../static/css/search.css">
+    <link rel="stylesheet" href="../static/css/video.css">
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="../static/js/search.js"></script>
+    <script src="../static/js/video.js"></script>
+    <script src="../static/js/notifications.js"></script>
+    <header class="header">
+        <a href="/main" class="logo">
+            <img src="../static/img/EhWorld.svg" width="148">
+        </a>
+        
+        <div class="nav-links">
+            <a href="/main">Главная</a>
+            <a href="/feed">Лента</a>
+            <a href="/shop">Магазин</a>
+            <a href="/upload">Загрузить</a>
+        </div>
+        
+        <div class="search-container">
+            <div class="search-box-container">
+                <input 
+                    id="searchInput"
+                    type="search" 
+                    class="search-box" 
+                    placeholder="Поиск..."
+                >
+                <div class="search-results" id="searchResults"></div>
+            </div>
+
+            <div class="sign-in">
+                <button class="sign-in-button" onclick="window.location.href='/'">Войти</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-md profile-container">
+        <div class="section">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <img src="{{.ProfileUser.ProfileImageURL}}" alt="Аватар">
+                </div>
+                <div class="profile-info">
+                    <div class="username-badge">
+                        <h1 class="profile-username">{{.ProfileUser.DisplayName}}</h1>
+                        {{ if hasBadge .ProfileUser.ID }}
+                        <img src=" {{ .ProfileUser.Badge }}" alt="Badge" class="user-badge" width="34" height="34">
+                        {{ end }}
+                    </div>
+                    <h2 class="followers" id="followersCount">{{ formatFollowers .ProfileUser.Followers}}</h2>
+                    <div class="profile-buttons">
+                        <button id="followButton" class="btn primary" 
+                                    data-following="false">
+                                Подписаться
+                        </button>
+                        <a href="https://twitch.tv/{{.ProfileUser.Login}}" target="_blank" 
+                        class="btn secondary">Перейти на Twitch</a>
+                    </div>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <span class="stat-count">{{.Stats.Likes}}</span>
+                            <span class="stat-label">Лайки</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-count">{{.Stats.Fucks}}</span>
+                            <span class="stat-label">Факи</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-count">{{.Stats.Posts}}</span>
+                            <span class="stat-label">Посты</span>
+                        </div>
+                    </div>
+                    <div class="profile-badges">
+                        {{range .Badges}}
+                            <img src="{{.Image}}" alt="{{.Title}}" title="{{.Title}}" class="badge-icon">
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="content-controls">
+                <div class="filters">
+                    <button class="filter-btn active" data-type="all">Все посты</button>
+                    <button class="filter-btn" data-type="image">Изображения</button>
+                    <button class="filter-btn" data-type="video">Видео</button>
+                    <button class="filter-btn" data-type="clip">Клипы</button>
+                </div>
+                <div class="sort-controls">
+                    <select id="sortSelect" class="form-select">
+                        <option value="newest">Самые новые</option>
+                        <option value="popular">Самые популярные</option>
+                    </select>
+                    <div class="search-box-container">
+                        <input type="text" id="postSearchInput" class="search-box" placeholder="Поиск по постам...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="posts-grid" id="postsGrid">
+                <!-- Посты будут загружаться здесь -->
+            </div>
+
+            <div class="pagination" id="pagination">
+                <!-- Пагинация -->
+            </div>
+        </div>
+        
+    </div>
+
+    <div id="profileData" 
+         data-user-id="{{.ProfileUser.ID}}"
+         data-is-owner="false"
+         style="display: none;"></div>
+
+    <script src="../static/js/profile.js"></script>
+</body>
+</html>

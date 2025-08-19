@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ehchobyah</title>
+    <link rel="icon" href="../static/img/icon.png" type="image">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(45deg, #702b9e, #68597a);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            color: white;
+        }
+        
+        .center-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            width: 90%;
+            max-width: 450px;
+        }
+        
+        .login-card {
+            background: #161616;
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .logo {
+            font-size: 64px;
+            font-weight: 800;
+            margin-bottom: 30px;
+            letter-spacing: -2px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(45deg, #430070, #d9b8ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .twitch-btn {
+            background: #ffffff;
+            color: rgb(0, 0, 0);
+            border: none;
+            border-radius: 12px;
+            padding: 16px 30px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 0 auto 25px;
+            box-shadow: 0 4px 15px rgba(48, 48, 48, 0.3);
+        }
+        
+        .twitch-btn:hover {
+            background: #cccccc;
+            
+        }
+        
+        .twitch-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .twitch-icon {
+            width: 24px;
+            height: 24px;
+            fill: rgb(0, 0, 0);
+        }
+        
+        .copyright {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 15px;
+            font-weight: 300;
+        }
+
+        /* Cookie уведомление */
+        .cookie-notice {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            max-width: 300px;
+            background: #161616;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 1000;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideUp 0.5s forwards 1s;
+        }
+        
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .cookie-notice.hide {
+            animation: slideDown 0.5s forwards;
+        }
+        
+        @keyframes slideDown {
+            to {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+        }
+
+        .cookie-notice a {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .cookie-notice p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .cookie-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .cookie-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .cookie-btn:active {
+            transform: translateY(1px);
+        }
+        
+        @media (max-width: 600px) {
+            .text-row {
+                font-size: 7vw;
+            }
+            
+            .logo {
+                font-size: 48px;
+            }
+            
+            .twitch-btn {
+                padding: 14px 20px;
+                font-size: 16px;
+            }
+            
+            .login-card {
+                padding: 30px 20px;
+            }
+
+            .cookie-notice {
+                max-width: calc(100% - 40px);
+                left: 20px;
+                right: 20px;
+                bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Анимированный фон -->
+    <div class="background-text" id="backgroundText"></div>
+    
+    <!-- Центральное окно авторизации -->
+    <div class="center-container">
+        <div class="login-card">
+            <div class="logo">Ehworld</div>
+            <button class="twitch-btn" id="loginButton" onclick="document.location.href='/auth/twitch'">
+                <svg class="twitch-icon" viewBox="0 0 24 24">
+                    <path d="M4.265 3L3 6.236v13.223h4.502V21l2.531-.85 2.392-1.934h3.672L21 14.009V3H4.265zm15.052 10.155l-2.317 1.89h-3.78l-2.3 1.858v-1.858H5.813V4.143h13.504v9.012zm-2.931-6.008h-1.97v4.942h1.97V7.147zm-4.502 0h-1.969v4.942h1.969V7.147z"/>
+                </svg>
+                Войти через Twitch
+            </button>
+            <div class="copyright">Ehchobyah™ © 2025</div>
+        </div>
+    </div>
+
+    <!-- Уведомление о Cookie -->
+    <div class="cookie-notice" id="cookieNotice">
+        <a>Файлы Cookie</a>
+        <p>Используя наш сайт, вы даете согласие на использование технических файлов Cookie. Мы используем минимальный набор информации, необходимый для функционирования сайта.</p>
+        <button class="cookie-btn" id="cookieButton">Good nice</button>
+    </div>
+
+    <script>
+        // Обработчик для кнопки Cookie
+        document.getElementById('cookieButton').addEventListener('click', function() {
+            const cookieNotice = document.getElementById('cookieNotice');
+            
+            // Добавляем класс для запуска анимации исчезновения
+            cookieNotice.classList.add('hide');
+            
+            // После завершения анимации скрываем элемент и сохраняем согласие
+            setTimeout(() => {
+                cookieNotice.style.display = 'none';
+                localStorage.setItem('cookieAccepted', 'true');
+            }, 500); // Должно соответствовать времени анимации (0.5s)
+        });
+        
+        // Проверяем, было ли уже принято соглашение
+        window.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('cookieAccepted') === 'true') {
+                document.getElementById('cookieNotice').style.display = 'none';
+            }
+        });
+        
+        // Адаптация к изменению размера окна
+        window.addEventListener('resize', function() {
+            // Пересчитываем позиции строк при изменении размера окна
+            const rows = document.querySelectorAll('.text-row');
+            rows.forEach((row, i) => {
+                row.style.top = `${i * rowHeight}px`;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+.feed-container {
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+        
+        /* Стили для поста */
+        .post-card {
+            max-width: 600px;
+            margin: 0 auto 40px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            background: #2b2b2b;
+        }
+        
+        .post-header {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #888;
+        }
+        
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            object-fit: cover;
+        }
+        
+        .post-author {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .post-time {
+            color: #888;
+            font-size: 13px;
+            margin-left: 8px;
+        }
+        
+        .post-media {
+            width: 100%;
+            max-height: 600px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .video-container {
+            position: relative;
+            background: #000;
+        }
+        
+        .video-play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .video-play-btn::after {
+            content: "";
+            border-style: solid;
+            border-width: 12px 0 12px 20px;
+            border-color: transparent transparent transparent #333;
+            margin-left: 5px;
+        }
+        
+        .post-footer {
+            padding: 16px;
+        }
+        
+        .post-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        
+        .like-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .like-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #464646;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .like-btn:hover {
+            background: #a7a7a7;
+        }
+        
+        .like-btn.liked {
+            background: rgba(255, 0, 0, 0.1);
+        }
+        
+        .like-btn.liked svg {
+            fill: #ff0000;
+        }
+        
+        .like-count {
+            margin-left: 8px;
+            font-weight: 500;
+        }
+        
+        .view-count {
+            color: #65676b;
+            font-size: 14px;
+        }
+        
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .goto-post-btn {
+            background: #f0f2f5;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .goto-post-btn:hover {
+            background: #e4e6e9;
+        }
+        
+        .post-caption {
+            margin-top: 14px;
+            padding: 12px 0;
+            border-top: 1px solid #707070;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        
+        .post-tags {
+            color: #1877f2;
+            margin-top: 6px;
+        }
+        
+        /* Анимации */
+        @keyframes scrollDown {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+            100% { transform: translateY(0); }
+        }
+        
+        .scroll-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            animation: scrollDown 1.5s infinite;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .post-card {
+                border-radius: 0;
+                margin-bottom: 20px;
+                box-shadow: none;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .feed-container {
+                margin-top: 60px;
+            }
+        }

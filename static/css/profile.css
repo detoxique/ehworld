@@ -1,0 +1,418 @@
+.profile-container {
+    margin-top: 30px;
+    padding: 20px;
+}
+
+.followers {
+    font-weight: 400;
+    font-size: 16px;
+    color: #c4c4c4;
+    margin-bottom: 12px;
+}
+
+.profile-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    padding: 25px;
+    background: #2b2b2b;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.profile-avatar img {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #772ce8;
+}
+
+.profile-info {
+    flex: 1;
+    margin-left: 30px;
+}
+
+.profile-username {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #efeff1;
+}
+
+.profile-buttons {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.primary {
+    background: #772ce8;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-weight: 600;
+}
+
+.primary:hover {
+    background: #8f51ec;
+    color: #fff;
+}
+
+.secondary {
+    background: #424242;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-weight: 600;
+}
+
+.secondary:hover {
+    background: #999999;
+    color: #fff;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 25px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-count {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: #efeff1;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #adadb8;
+}
+
+.profile-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.badge-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: #2d2d31;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+.content-controls {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+    gap: 15px;
+}
+
+.filters {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    background: #2b2b2b;
+    border: none;
+    border-radius: 6px;
+    color: #efeff1;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.filter-btn.active, .filter-btn:hover {
+    background: #772ce8;
+}
+
+.sort-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.form-select {
+    background: #2b2b2b;
+    border: none;
+    color: #efeff1;
+    padding: 8px 16px;
+    border-radius: 6px;
+    min-width: 180px;
+}
+
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+/* .post-card {
+    background: #1f1f23;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+}
+
+.post-thumbnail {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+}
+
+.post-info {
+    padding: 15px;
+}
+
+.post-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #efeff1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.post-meta {
+    display: flex;
+    justify-content: space-between;
+    color: #adadb8;
+    font-size: 14px;
+}
+
+.post-type {
+    background: #772ce8;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+} */
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    gap: 10px;
+}
+
+.page-btn {
+    padding: 8px 16px;
+    background: #2d2d31;
+    border: none;
+    border-radius: 6px;
+    color: #efeff1;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.page-btn.active, .page-btn:hover {
+    background: #772ce8;
+}
+
+.page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Стили карточки */
+.post-card {
+    display: block;
+    width: 280px;
+    flex-shrink: 0;
+    background: rgba(49, 49, 49, 0.6);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-decoration: none;
+    color: white;
+}
+
+.post-card:hover {
+    /* transform: translateY(-5px); */
+    box-shadow: 0 12px 30px rgba(173, 173, 173, 0.3);
+    border-color: rgba(131, 131, 131, 0.4);
+} 
+
+.post-thumbnail {
+    position: relative;
+    width: 100%;
+    height: 160px;
+    overflow: hidden;
+}
+
+.post-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.post-card:hover .post-thumbnail img {
+    transform: scale(1.05);
+}
+
+.play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.post-card:hover .play-icon {
+    background: rgba(163, 163, 163, 0.8);
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.post-content {
+    padding: 15px;
+}
+
+.post-title {
+    font-size: 18px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.post-author {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.7);
+    /* margin-bottom: 12px; */
+}
+
+.post-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 14px;
+}
+
+.post-stats span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+    .post-card {
+        width: 240px;
+    }
+    
+    .post-thumbnail {
+        height: 140px;
+    }
+}
+
+.post-content h3 {
+    color: white !important; 
+    transition: none !important; 
+}
+
+.post-card:hover .post-title h3, .play-icon {
+    color: white !important; 
+    transition: none !important; 
+}
+
+/* Адаптивная сетка */
+@media (max-width: 1200px) {
+    .posts-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .posts-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .posts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.section {
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: fadeInUp 0.4s ease forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+.section:nth-child(2) {
+    animation-delay: 0.4s;
+}
+
+.section:nth-child(3) {
+    animation-delay: 0.6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .title, .section, .cookie-notice {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important; 
+    }
+}
+
+.sign-in-button {
+    margin-left: 12px;
+    background: #8225fc;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.sign-in-button:hover {
+    background: #6a1fc9;
+    transform: translateY(-2px);
+}
+
+.username-badge {
+    display: flex;
+    gap: 5px;
+}

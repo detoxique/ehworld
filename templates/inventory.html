@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ehworld</title>
+    <link rel="icon" href="../static/img/icon.png" type="image">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/css/avatar.css">
+    <link rel="stylesheet" href="../static/css/shop.css">
+    <link rel="stylesheet" href="../static/css/header.css">
+    <link rel="stylesheet" href="../static/css/search.css">
+    <link rel="stylesheet" href="../static/css/footer.css">
+    <link rel="stylesheet" href="../static/css/inventory.css">
+</head>
+<body>
+    <script src="../static/js/search.js"></script>
+    <script src="../static/js/notifications.js"></script>
+    <script src="../static/js/inventory.js"></script>
+    <header class="header">
+        <a href="/main" class="logo">
+            <img src="../static/img/EhWorld.svg" width="148">
+        </a>
+        
+        <div class="nav-links">
+            <a href="/main">Главная</a>
+            <a href="/feed">Лента</a>
+            <a href="/shop">Магазин</a>
+            <a href="/inventory">Инвентарь</a>
+            <a href="/upload">Загрузить</a>
+            {{ if checkModRole .User.ID}}
+            <a href="/moderator">Модерация</a>
+            {{ end}}
+            {{ if checkAdminRole .User.ID}}
+            <a href="/admin">Админ панель</a>
+            <a href="/queue">Очередь запросов</a>
+            {{ end}}
+        </div>
+        
+        <div class="search-container">
+            <div class="search-box-container">
+                <input 
+                    id="searchInput"
+                    type="search" 
+                    class="search-box" 
+                    placeholder="Поиск..."
+                >
+                <div class="search-results" id="searchResults"></div>
+            </div>
+
+            <div class="notification-container">
+                <button class="notification-button" id="notificationButton">
+                    {{ if hasNotifications .User.ID }}
+                        <img src="../static/img/notifications-active.svg" width="32" height="32">
+                    {{ else }}
+                        <img src="../static/img/notifications-1.svg" width="32" height="32">
+                    {{ end}}
+                </button>
+                
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <span>Уведомления</span>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <!-- Уведомления будут загружаться здесь -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="avatar-dropdown">
+            <img src="{{.User.ProfileImageURL}}" alt="Аватар" class="user-avatar" id="avatarDropdown">
+            <div class="dropdown-content" id="dropdownContent">
+                <div class="user-info">
+                    <span class="username">{{.User.DisplayName}}</span>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a href="/user/{{.User.DisplayName}}" class="dropdown-link">
+                    Профиль
+                </a>
+                <a href="/settings" class="dropdown-link">
+                    Настройки
+                </a>
+                <a href="/logout" class="dropdown-link logout-button">
+                    Выйти
+                </a>
+            </div>
+        </div>
+        </div>
+    </header>
+
+    <div class="container-md">
+        <div class="section">
+            <div class="balance-container">
+                <div class="balance-title">
+                    <div class="current-badge">
+                        <h2>Текущий значок: </h2>
+                        {{ if hasBadge .User.ID }}
+                        <img src=" {{ .User.Badge }}" alt="Badge" class="user-badge" width="40" height="40">
+                        {{ end }}
+                    </div>
+                    <p>Здесь вы можете настроить значок для своего профиля и применить награды из кейсов</p>
+                </div>
+                <div class="balance-amount">
+                    <h2>Ваш баланс</h2>
+                    <h3>{{.User.Rating}} эхчокоинов</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Секция значков -->
+        <div class="section">
+            <h2 class="section-title">Ваши значки</h2>
+            <div class="badges-grid">
+                {{range .Badges}}
+                <div class="badge-item {{if eq .ID $.User.CurrentBadgeID}}active-badge{{end}}" 
+                     data-id="{{.ID}}"
+                     data-image="{{.Image}}">
+                    <img src="{{.Image}}" alt="{{.Title}}">
+                    {{if eq .ID $.User.CurrentBadgeID}}
+                    <div class="badge-check">✓</div>
+                    {{end}}
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- Секция предметов -->
+        <div class="section">
+            <h2 class="section-title">Инвентарь</h2>
+                <div class="items-grid">
+                    {{range .Items}}
+                    <div class="item-card" data-id="{{.ID}}">
+                        <div class="item-image">
+                            <img src="{{.Image}}" alt="{{.Title}}">
+                        </div>
+                        <div class="item-content">
+                            <h3 class="item-title">{{.Title}}</h3>
+                            <div class="item-footer">
+                                {{if or (eq .Type "vip") (eq .Type "auk")}}
+                                    <button class="apply-button">Применить</button>
+                                {{else}}
+                                    <div class="owned-badge">В коллекции</div>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+
+        <div id="auctionModal" class="auction-modal">
+            <div class="auction-modal-content">
+                <h3 class="auction-modal-title">Введите название лота</h3>
+                <input type="text" id="lotName" class="auction-input" placeholder="Название лота...">
+                <div class="auction-buttons">
+                    <button id="cancelAuction" class="auction-button auction-cancel">Отмена</button>
+                    <button id="submitAuction" class="auction-button auction-submit">Подтвердить</button>
+                </div>
+            </div>
+        </div>
+
+    <footer class="footer">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-4 footer-section">
+                    <h5>Ehworld</h5>
+                    <p>Лучшая платформа для обмена файлами</p> <a href="https://www.twitch.tv/detoxique">Разработчик: detoxique</a>
+                </div>
+                <div class="col-md-4 footer-section">
+                    <h5>Навигация</h5>
+                    <ul>
+                        <li><a href="#">Главная</a></li>
+                        <li><a href="/feed">Лента</a></li>
+                        <li><a href="/upload">Загрузить</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 footer-section">
+                    <h5>Контакты</h5>
+                    <ul>
+                        <li><a href="mailto:ehchobyah@gmail.com">ehchobyah@gmail.com</a></li>
+                        <li><a href="https://discord.gg/mMJfnkHQMg">Discord</a></li>
+                        <li><a href="https://www.twitch.tv/ehchobyah">Twitch</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 Ehworld. Все права защищены.</p>
+            </div>
+            </div>
+        
+    </footer>
+<script src="../static/js/shop.js"></script>
+</body>
+</html>

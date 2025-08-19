@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ehworld</title>
+    <link rel="icon" href="../static/img/icon.png" type="image">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/css/avatar.css">
+    <link rel="stylesheet" href="../static/css/admin.css">
+    <link rel="stylesheet" href="../static/css/header.css">
+    <link rel="stylesheet" href="../static/css/search.css">
+
+</head>
+<body>
+    <script src="../static/js/search.js"></script>
+    <script src="../static/js/notifications.js"></script>
+    <header class="header">
+        <a href="/main" class="logo">
+            <img src="../static/img/EhWorld.svg" width="148">
+        </a>
+        
+        <div class="nav-links">
+            <a href="/main">Главная</a>
+            <a href="/feed">Лента</a>
+            <a href="/shop">Магазин</a>
+            <a href="/inventory">Инвентарь</a>
+            <a href="/upload">Загрузить</a>
+            <a href="/moderator">Модерация</a>
+            <a href="/admin">Админ панель</a>
+            <a href="/queue">Очередь запросов</a>
+        </div>
+        
+        <div class="search-container">
+            <div class="search-box-container">
+                <input 
+                    id="searchInput"
+                    type="search" 
+                    class="search-box" 
+                    placeholder="Поиск..."
+                >
+                <div class="search-results" id="searchResults"></div>
+            </div>
+
+            <div class="notification-container">
+                <button class="notification-button" id="notificationButton">
+                    {{ if hasNotifications .User.ID }}
+                        <img src="../static/img/notifications-active.svg" width="32" height="32">
+                    {{ else }}
+                        <img src="../static/img/notifications-1.svg" width="32" height="32">
+                    {{ end}}
+                </button>
+                
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <span>Уведомления</span>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <!-- Уведомления будут загружаться здесь -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="avatar-dropdown">
+            <img src="{{.User.ProfileImageURL}}" alt="Аватар" class="user-avatar" id="avatarDropdown">
+            <div class="dropdown-content" id="dropdownContent">
+                <div class="user-info">
+                    <span class="username">{{.User.DisplayName}}</span>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a href="/user/{{.User.DisplayName}}" class="dropdown-link">
+                    Профиль
+                </a>
+                <a href="/settings" class="dropdown-link">
+                    Настройки
+                </a>
+                <a href="/logout" class="dropdown-link logout-button">
+                    Выйти
+                </a>
+            </div>
+        </div>
+        </div>
+    </header>
+
+    <div class="container-md">
+        <div class="title">
+        <a>Админ панель</a>
+
+        <div class="content">
+            <div class="section">
+                <div class="moderators">
+                    <p class="titles">Модераторы</p>
+
+                    <div class="add-moderator">
+                        <div class="user-search-container">
+                            <input 
+                                type="text" 
+                                id="moderatorSearch" 
+                                placeholder="Поиск пользователей..."
+                                autocomplete="off"
+                            >
+                            <div id="searchResultsUsers" class="search-results"></div>
+                        </div>
+                        <button id="addModeratorBtn" class="btn btn-primary">
+                            Добавить модератора
+                        </button>
+                    </div>
+
+                    <div class="moderators-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Аватар</th>
+                                    <th>Имя пользователя</th>
+                                    <th>Роль</th>
+                                </tr>
+                            </thead>
+                            <tbody id="moderatorsList">
+                                <!-- Данные будут заполняться через JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="ban">
+                    <p class="titles">Заблокировать пользователя</p>
+
+                    <div class="ban-user">
+                        <div class="ban-user-search-container">
+                            <input 
+                                type="text" 
+                                id="banSearch" 
+                                placeholder="Поиск пользователей..."
+                                autocomplete="off"
+                            >
+                            <div id="searchResultsBanUsers" class="search-ban-results"></div>
+                        </div>
+                        <button id="banUserBtn" class="btn btn-primary">
+                            Заблокировать
+                        </button>
+                    </div>
+
+                    <div class="banned-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Аватар</th>
+                                    <th>Имя пользователя</th>
+                                    <th>Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bannedList">
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="badges">
+                    <p class="titles">Добавить значок</p>
+
+                    <div class="upload-preview">
+                        <div class="add-badge">
+                            <div class="upload-area" id="uploadArea">
+                                <div class="upload-icon">📁</div>
+                                <p class="upload-text">Перетащите файл сюда или нажмите, чтобы выбрать</p>
+                                <input type="file" id="fileInput" class="file-input">
+                            </div>
+                        </div>
+
+                        <div class="preview">
+                            <p class="titles">Предпросмотр</p>
+
+                            <div class="post-card">
+                                <div class="post-header">
+                                    <img src="{{ .User.ProfileImageURL }}" alt="Аватар" class="post-avatar" onclick="window.location.href='/user/{{ .User.DisplayName }}'">
+                                    <div>
+                                        <div class="username-badge">
+                                            <div class="post-author">{{ .User.DisplayName }}</div>
+                                            <img src="" alt="Badge" class="user-badge" width="20" height="20">
+                                        </div>
+                                        
+                                        <span class="post-time">только что</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label class="form-label">Название</label>
+                    <input type="text" id="titleInput" class="title-input" placeholder="Введите название">
+
+                    <label class="form-label">Цена</label>
+                    <input type="text" id="costInput" class="cost-input" placeholder="Введите цену">
+
+                    <button id="addBadgeBtn" class="btn btn-primary">
+                            Добавить
+                    </button>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="cases">
+                    <p class="titles">Добавить кейс</p>
+
+                    <div class="upload-case-preview">
+                        <div class="add-case">
+                            <div class="upload-area" id="uploadCaseArea">
+                                <div class="upload-icon">📁</div>
+                                <p class="upload-text">Перетащите файл сюда или нажмите, чтобы выбрать</p>
+                                <input type="file" id="caseFileInput" class="file-input">
+                            </div>
+                        </div>
+
+                        <div class="preview">
+                            <p class="titles">Предпросмотр</p>
+
+                            <div class="case-card">
+                                <div class="case-image">
+                                    <img src="" alt="case" class="image-case">
+                                </div>
+                                <div class="case-content">
+                                    <h3 class="case-title" id="caseTitle"></h3>
+                                    <h4 class="case-description" id="caseDescription"></h3>
+                                    <div class="case-footer">
+                                        <div class="case-price" id="casePrice"> э</div>
+                                            <button 
+                                                class="buy-button" 
+                                            >
+                                                Открыть
+                                            </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <label class="form-label">Название</label>
+                        <input type="text" id="titleCaseInput" class="title-input" placeholder="Введите название">
+
+                        <label class="form-label">Описание</label>
+                        <input type="text" id="descriptionCaseInput" class="title-input" placeholder="Введите описание">
+
+                        <label class="form-label">Цена</label>
+                        <input type="text" id="costCaseInput" class="cost-input" placeholder="Введите цену">
+
+                        <div class="rewards">
+                            <p class="titles">Награды кейса (сумма шансов должна равняться 1)</p>
+                            
+                            <div class="reward-controls">
+                                <div class="reward-type">
+                                    <label class="form-label">Тип награды</label>
+                                    <select id="rewardType" class="form-control">
+                                        <option value="vip">VIP</option>
+                                        <option value="badge">Значок</option>
+                                        <option value="auk">Рубли для аука</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="reward-details" id="rewardDetails">
+                                    <!-- Динамическое содержимое будет здесь -->
+                                </div>
+                                
+                                <button id="addRewardBtn" class="btn btn-secondary">
+                                    Добавить награду
+                                </button>
+                            </div>
+                            
+                            <div class="rewards-list" id="rewardsList">
+                                <!-- Список добавленных наград -->
+                            </div>
+                        </div>
+
+                        <button id="addCaseBtn" class="btn btn-primary">
+                                Добавить кейс
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="statistics">
+                    <p class="titles">Статистика</p>
+
+                    <ul>
+                        <li><a>Пользователей: {{ .Stats.TotalUsers }}</a></li>
+                        <li><a>Просмотров: {{ .Stats.TotalViews }}</a></li>
+                        <li><a>Постов: {{ .Stats.TotalPosts }}</a></li>
+                        <li><a>Лайков: {{ .Stats.TotalLikes }}</a></li>
+                    </ul>
+
+                    <button id="authBtn" class="btn btn-primary" onclick="document.location.href='/admin/twitch'">
+                            Авторизовать Twitch
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script src="../static/js/admin.js"></script>
+</body>
+</html>

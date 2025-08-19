@@ -1,0 +1,303 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    position: relative; /* Для корректного позиционирования футера */
+    
+    background: linear-gradient(45deg, #0c0c0c, #131313);
+    padding-top: 70px; /* Чтобы контент не скрывался под хедером */
+    color: white;
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 5%;
+    background: rgba(83, 83, 83, 0.25); /* Полупрозрачный белый */
+    backdrop-filter: blur(10px); /* Размытие фона */
+    -webkit-backdrop-filter: blur(10px); /* Для Safari */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+    font-size: 22px;
+    color: #333;
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+    margin-left: 40px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 17px;
+    transition: color 0.3s;
+    position: relative;
+}
+
+.nav-links a:hover {
+    color: #8225fc;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #8225fc;
+    transition: width 0.3s;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+}
+
+.search-box {
+    padding: 10px 20px;
+    border-radius: 30px;
+    border: none;
+    outline: none;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    width: 220px;
+    font-size: 15px;
+    transition: all 0.3s;
+}
+
+.search-box:focus {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 15px rgba(37, 117, 252, 0.2);
+    width: 250px;
+}
+
+/* Cookie уведомление */
+        .cookie-notice {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            max-width: 300px;
+            background: #161616;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 1000;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideUp 0.5s forwards 1s;
+        }
+        
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .cookie-notice.hide {
+            animation: slideDown 0.5s forwards 1s;
+        }
+        
+        @keyframes slideDown {
+            to {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+        }
+
+        .cookie-notice a {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .cookie-notice p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .cookie-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .cookie-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .cookie-btn:active {
+            transform: translateY(1px);
+        }
+
+@media (max-width: 600px) {
+    .cookie-notice {
+        max-width: calc(100% - 40px);
+        left: 20px;
+        right: 20px;
+        bottom: 10px;
+    }
+}
+
+.notification-container {
+    position: relative;
+    margin-left: 20px;
+}
+
+.notification-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.notification-dropdown {
+    scrollbar-width: thin;
+    scrollbar-color: #666666 #161616;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 350px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: #313131;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    border: 1px solid #444;
+    display: none;
+    z-index: 1000;
+    margin-top: 10px;
+}
+
+.notification-dropdown::-webkit-scrollbar {
+    height: 8px;
+}
+
+.notification-dropdown::-webkit-scrollbar-track {
+    background: #161616;
+    border-radius: 4px;
+}
+
+.notification-dropdown::-webkit-scrollbar-thumb {
+    background: #161616;
+    border-radius: 4px;
+}
+
+.notification-dropdown.show {
+    display: block;
+}
+
+.notification-header {
+    padding: 15px;
+    border-bottom: 1px solid #444;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.notification-list {
+    padding: 5px 0;
+}
+
+.notification-item {
+    display: flex;
+    padding: 12px 15px;
+    text-decoration: none;
+    color: white;
+    border-bottom: 1px solid #444;
+    transition: background 0.2s;
+}
+
+.notification-item:hover {
+    background: #444;
+    cursor: pointer;
+}
+
+.notification-image {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex-grow: 1;
+}
+
+.notification-text {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.notification-time {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 4px;
+}
+
+.notification-footer {
+    padding: 12px 15px;
+    text-align: center;
+    border-top: 1px solid #444;
+}
+
+.notification-footer a {
+    color: #ccc;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.notification-footer a:hover {
+    color: white;
+}
+
+.loading-notification,
+.empty-notification,
+.error-notification {
+    padding: 20px;
+    text-align: center;
+    color: #aaa;
+    font-size: 14px;
+}

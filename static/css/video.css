@@ -1,0 +1,251 @@
+/* Контейнер для видео */
+.video-container {
+    position: relative;
+    background: #000;
+    overflow: hidden;
+    /* border-radius: 8px; */
+}
+
+/* Стили основного видео элемента */
+.video-container video {
+    width: 100%;
+    display: block;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+/* Эффект при наведении */
+.video-container:hover video {
+    transform: scale(1.02);
+}
+
+/* Контролы плеера */
+.video-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    padding: 15px 20px 10px;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 20;
+}
+
+.video-container:hover .video-controls {
+    opacity: 1;
+}
+
+/* Прогресс-бар */
+.progress-container {
+    width: 100%;
+    height: 5px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #8225fc;
+    border-radius: 3px;
+    width: 0%;
+    position: relative;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.progress-container:hover .progress-bar::after {
+    opacity: 1;
+}
+
+/* Основные кнопки управления */
+.control-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.left-controls, .right-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Стили кнопок */
+.control-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+}
+
+.control-btn:hover {
+    background: rgba(255,255,255,0.1);
+    transform: scale(1.1);
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+}
+
+/* Иконки */
+.control-btn svg {
+    width: 22px;
+    height: 22px;
+    fill: white;
+}
+
+/* Время */
+.video-time {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: rgba(255,255,255,0.9);
+    font-family: monospace;
+}
+
+.time-separator {
+    margin: 0 5px;
+}
+
+/* Громкость */
+.volume-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.volume-slider {
+    width: 80px;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+}
+
+.volume-level {
+    height: 100%;
+    background: white;
+    border-radius: 2px;
+    width: 100%;
+}
+
+/* Кнопка полноэкранного режима */
+.fullscreen-btn svg {
+    transition: transform 0.3s;
+}
+
+/* Индикатор загрузки */
+.video-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.video-loading.visible {
+    opacity: 1;
+}
+
+.video-loading-spinner {
+    width: 100%;
+    height: 100%;
+    border: 3px solid rgba(255,255,255,0.2);
+    border-top: 3px solid #8225fc;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .video-controls {
+        padding: 10px 15px 8px;
+    }
+    
+    .control-btn {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .control-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .volume-slider {
+        width: 60px;
+    }
+}
+
+/* Кнопка воспроизведения */
+.video-play-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 15;
+    transition: all 0.3s;
+    border: none;
+}
+
+.video-play-btn::after {
+    content: "";
+    border-style: solid;
+    border-width: 12px 0 12px 20px;
+    border-color: transparent transparent transparent white;
+    margin-left: 5px;
+}
+
+.video-container.playing .video-play-btn {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.video-play-btn:hover {
+    background: #8225fc;
+    transform: translate(-50%, -50%) scale(1.1);
+}

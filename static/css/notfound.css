@@ -1,0 +1,17 @@
+.container-md {
+    align-items: center;
+    justify-content: center;
+}
+
+h2 {
+    font-size: 48px;
+    font-weight: 600;
+    justify-content: center;
+    margin-top: 40%;
+}
+
+h3 {
+    font-size: 36px;
+    font-weight: 600;
+    justify-content: center;
+}

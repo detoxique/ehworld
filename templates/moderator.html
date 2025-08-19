@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модерация | Ehworld</title>
+    <link rel="icon" href="../static/img/icon.png" type="image">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/css/avatar.css">
+    <link rel="stylesheet" href="../static/css/header.css">
+    <link rel="stylesheet" href="../static/css/footer.css">
+    <link rel="stylesheet" href="../static/css/moderator.css">
+    <link rel="stylesheet" href="../static/css/search.css">
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="../static/js/search.js"></script>
+    <script src="../static/js/notifications.js"></script>
+    <header class="header">
+        <a href="/main" class="logo">
+            <img src="../static/img/EhWorld.svg" width="148">
+        </a>
+        
+        <div class="nav-links">
+            <a href="/main">Главная</a>
+            <a href="/feed">Лента</a>
+            <a href="/shop">Магазин</a>
+            <a href="/inventory">Инвентарь</a>
+            <a href="/upload">Загрузить</a>
+            {{ if checkModRole .ID}}
+            <a href="/moderator">Модерация</a>
+            {{ end}}
+            {{ if checkAdminRole .ID}}
+            <a href="/admin">Админ панель</a>
+            <a href="/queue">Очередь запросов</a>
+            {{ end}}
+        </div>
+        
+        <div class="search-container">
+            <div class="search-box-container">
+                <input 
+                    id="searchInput"
+                    type="search" 
+                    class="search-box" 
+                    placeholder="Поиск..."
+                >
+                <div class="search-results" id="searchResults"></div>
+            </div>
+
+            <div class="notification-container">
+                <button class="notification-button" id="notificationButton">
+                    {{ if hasNotifications .ID }}
+                        <img src="../static/img/notifications-active.svg" width="32" height="32">
+                    {{ else }}
+                        <img src="../static/img/notifications-1.svg" width="32" height="32">
+                    {{ end}}
+                </button>
+                
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <span>Уведомления</span>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <!-- Уведомления будут загружаться здесь -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="avatar-dropdown">
+            <img src="{{.ProfileImageURL}}" alt="Аватар" class="user-avatar" id="avatarDropdown">
+            <div class="dropdown-content" id="dropdownContent">
+                <div class="user-info">
+                    <span class="username">{{.DisplayName}}</span>
+                </div>
+                <div class="dropdown-divider"></div>
+                <a href="/user/{{.DisplayName}}" class="dropdown-link">
+                    Профиль
+                </a>
+                <a href="/settings" class="dropdown-link">
+                    Настройки
+                </a>
+                <a href="/logout" class="dropdown-link logout-button">
+                    Выйти
+                </a>
+            </div>
+        </div>
+        </div>
+    </header>
+
+<div class="container-md">
+    <div class="title">
+        <a>Очередь модерации</a>
+    </div>
+
+    <div class="section">
+        <div class="content">
+        <div id="moderationPosts" class="posts-container"></div>
+        <div class="load-more-container">
+            <button id="loadMoreBtn" class="load-more-btn">Загрузить еще</button>
+        </div>
+    </div>
+    </div>
+</div>
+    
+    <!-- Уведомление о Cookie -->
+    <div class="cookie-notice" id="cookieNotice">
+        <a>Файлы Cookie</a>
+        <p>Используя наш сайт, вы даете согласие на использование технических файлов Cookie. Мы используем минимальный набор информации, необходимый для функционирования сайта.</p>
+        <button class="cookie-btn" id="cookieButton">Good nice</button>
+    </div>
+
+    <script>
+        // Модерация
+        document.addEventListener('DOMContentLoaded', () => {
+            let currentPage = 1;
+            const postsContainer = document.getElementById('moderationPosts');
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+
+            // Загрузка постов
+            async function loadModerationPosts(page) {
+                try {
+                    const response = await fetch(`/api/moderation/posts/1`);
+                    const data = await response.json();
+                    
+                    if (data.posts.length === 0) {
+                        loadMoreBtn.style.display = 'none';
+                        return;
+                    }
+                    
+                    renderPosts(data.posts);
+                    
+                    if (!data.has_more) {
+                        loadMoreBtn.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Ошибка загрузки постов:', error);
+                }
+            }
+
+            // Отрисовка постов
+            function renderPosts(posts) {
+                posts.forEach(post => {
+                    const isClip = post.type === 'clip';
+                    const isVideo = /\.(mp4|mov|avi|webm)$/i.test(post.file_name);
+                    
+                    const postElement = document.createElement('div');
+                    postElement.className = 'moderation-post';
+                    postElement.dataset.postId = post.id;
+                    postElement.dataset.authorId = post.author_id;
+
+                    const title = DOMPurify.sanitize(post.title)
+                    const description = DOMPurify.sanitize(post.description)
+                    
+                    let mediaContent = '';
+                    if (isClip) {
+                        mediaContent = `
+                            <div class="clip-embed">
+                                ${post.file_name}
+                            </div>
+                        `;
+                    } else if (isVideo) {
+                        mediaContent = `
+                            <video controls>
+                                <source src="../static/uploads/${post.file_name}" type="video/mp4">
+                            </video>
+                        `;
+                    } else {
+                        mediaContent = `<img src="../static/uploads/${post.file_name}" alt="${title}">`;
+                    }
+
+                    let descriptionContent = '';
+
+                    if (description != '') {
+                        descriptionContent = `
+                            <div class="post-description">
+                                ${description}
+                            </div>
+                        `;
+                    }
+                    
+                    postElement.innerHTML = `
+                    <div class="post-card">
+                        <div class="post-header">
+                            <img src="${post.author_avatar}" alt="Аватар" class="post-avatar">
+                            <div>
+                                <div class="post-author">${post.author_name}</div>
+                                <span class="post-time">${new Date(post.uploaded_at).toLocaleString()}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="media-container">
+                            ${mediaContent}
+                        </div>
+                        
+                        <div class="post-caption">${title}</div>
+
+                        ${descriptionContent}
+                        
+                        <div class="moderation-actions">
+                            <div class="action-group">
+                                <button class="btn-approve">Одобрить</button>
+                                <button class="btn-reject">Отклонить</button>
+                            </div>
+                            <button class="btn-delete">Удалить</button>
+                            <button class="btn-ban">Заблокировать пользователя</button>
+                        </div>
+                    </div>
+                    `;
+                    
+                    postsContainer.appendChild(postElement);
+                    
+                    // Обработчики действий
+                    postElement.querySelector('.btn-approve').addEventListener('click', () => approvePost(post.id));
+                    postElement.querySelector('.btn-reject').addEventListener('click', () => rejectPost(post.id));
+                    postElement.querySelector('.btn-delete').addEventListener('click', () => deletePost(post.id));
+                    postElement.querySelector('.btn-ban').addEventListener('click', () => banUser(post.author_id));
+                });
+            }
+
+            // Одобрить пост
+            async function approvePost(postId) {
+                try {
+                    const response = await fetch(`/api/moderation/approve/${postId}`, {
+                        method: 'POST'
+                    });
+                    
+                    if (response.ok) {
+                        document.querySelector(`.moderation-post[data-post-id="${postId}"]`).remove();
+                    }
+                } catch (error) {
+                    console.error('Ошибка одобрения поста:', error);
+                }
+            }
+
+            // Отклонить пост
+            async function rejectPost(postId) {
+                try {
+                    const response = await fetch(`/api/moderation/reject/${postId}`, {
+                        method: 'POST'
+                    });
+                    
+                    if (response.ok) {
+                        document.querySelector(`.moderation-post[data-post-id="${postId}"]`).remove();
+                    }
+                } catch (error) {
+                    console.error('Ошибка отклонения поста:', error);
+                }
+            }
+
+            // Удалить пост
+            async function deletePost(postId) {
+                try {
+                    const response = await fetch(`/api/moderation/delete/${postId}`, {
+                        method: 'POST'
+                    });
+                    
+                    if (response.ok) {
+                        document.querySelector(`.moderation-post[data-post-id="${postId}"]`).remove();
+                    }
+                } catch (error) {
+                    console.error('Ошибка удаления поста:', error);
+                }
+            }
+
+            // Заблокировать пользователя
+            async function banUser(userId) {
+                try {
+                    const response = await fetch(`/api/moderation/ban/${userId}`, {
+                        method: 'POST'
+                    });
+                    
+                    if (response.ok) {
+                        document.querySelectorAll(`.moderation-post[data-author-id="${userId}"]`).forEach(post => post.remove());
+                    }
+                } catch (error) {
+                    console.error('Ошибка блокировки пользователя:', error);
+                }
+            }
+
+            // Инициализация
+            loadModerationPosts(currentPage);
+            
+            // Кнопка "Загрузить еще"
+            loadMoreBtn.addEventListener('click', () => {
+                currentPage++;
+                loadModerationPosts(currentPage);
+            });
+        });
+        // Проверяем, было ли уже принято соглашение
+        window.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('cookieAccepted') === 'true') {
+                document.getElementById('cookieNotice').style.display = 'none';
+            }
+        });
+
+        // Обработчик для кнопки Cookie
+        document.getElementById('cookieButton').addEventListener('click', function() {
+            const cookieNotice = document.getElementById('cookieNotice');
+            
+            // Добавляем класс для запуска анимации исчезновения
+            cookieNotice.classList.add('hide');
+            
+            // После завершения анимации скрываем элемент и сохраняем согласие
+            setTimeout(() => {
+                cookieNotice.style.display = 'none';
+                localStorage.setItem('cookieAccepted', 'true');
+            }, 500); // Должно соответствовать времени анимации (0.5s)
+        });
+        
+        
+        
+        // Адаптация к изменению размера окна
+        window.addEventListener('resize', function() {
+            // Пересчитываем позиции строк при изменении размера окна
+            const rows = document.querySelectorAll('.text-row');
+            rows.forEach((row, i) => {
+                row.style.top = `${i * rowHeight}px`;
+            });
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>

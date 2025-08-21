@@ -179,35 +179,54 @@ class VideoPlayer {
         }
     }
     
+
+    //ваще это бы переписать всё нормально, но прост заебет фуллскрин кривой
     toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            if (this.container.requestFullscreen) {
-                this.container.requestFullscreen();
-            } else if (this.container.mozRequestFullScreen) { /* Firefox */
-                this.container.mozRequestFullScreen();
-            } else if (this.container.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
-                this.container.webkitRequestFullscreen();
-            } else if (this.container.msRequestFullscreen) { /* IE/Edge */
-                this.container.msRequestFullscreen();
+        const isFullscreen = document.fullscreenElement || 
+                            document.webkitFullscreenElement ||
+                            document.mozFullScreenElement ||
+                            document.msFullscreenElement;
+        if (!isFullscreen) {
+            const promise = this.container.requestFullscreen?.() ||
+                           this.container.mozRequestFullScreen?.() ||
+                           this.container.webkitRequestFullscreen?.() ||
+                           this.container.msRequestFullscreen?.();
+        
+            if (promise) {
+                promise.then(() => {
+                    this.video.classList.add('fullscreen-mode');
+                    this.updateVideoStyles();
+                }).catch(error => {
+                    console.error('Fullscreen error:', error);
+                });
             }
-            
-            // Обновляем иконку
+        } else {
+            const promise = document.exitFullscreen?.() ||
+                           document.mozCancelFullScreen?.() ||
+                           document.webkitExitFullscreen?.() ||
+                           document.msExitFullscreen?.();
+        
+            if (promise) {
+                promise.then(() => {
+                    this.video.classList.remove('fullscreen-mode');
+                    this.updateVideoStyles();
+                });
+            }
+        }
+    }
+    updateVideoStyles() {
+        if (this.video.classList.contains('fullscreen-mode')) {
+            this.video.style.width = '100vw';
+            this.video.style.height = '100vh';
+
             this.fullscreenBtn.querySelector('.fullscreen-open').style.display = 'none';
             this.fullscreenBtn.querySelector('.fullscreen-close').style.display = 'block';
         } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.mozCancelFullScreen) { /* Firefox */
-                document.mozCancelFullScreen();
-            } else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) { /* IE/Edge */
-                document.msExitFullscreen();
-            }
-            
-            // Обновляем иконку
-            this.fullscreenBtn.querySelector('.fullscreen-open').style.display = 'block';
-            this.fullscreenBtn.querySelector('.fullscreen-close').style.display = 'none';
+            this.video.style.width = '';
+            this.video.style.height = '';
+
+            this.fullscreenBtn.querySelector('.fullscreen-open').style.display = 'none';
+            this.fullscreenBtn.querySelector('.fullscreen-close').style.display = 'block';
         }
     }
     

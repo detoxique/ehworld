@@ -194,3 +194,42 @@ type CaseReward struct {
 	Image       string  `json:"image"`
 	Title       string  `json:"title"`
 }
+
+type AukSubmission struct {
+	ID              int    `json:"id"`
+	DisplayName     string `json:"display_name"`
+	ProfileImageURL string `json:"profile_image_url"`
+	AukValue        int    `json:"auk_value"`
+	Submission      string `json:"submission"`
+}
+
+type TwitchUser struct {
+	ID              string `json:"id"`
+	Login           string `json:"login"`
+	DisplayName     string `json:"display_name"`
+	ProfileImageURL string `json:"profile_image_url"`
+}
+
+type TwitchUsersResponse struct {
+	Data []TwitchUser `json:"data"`
+}
+
+type TwitchStream struct {
+	ID              string    `json:"id"`
+	UserID          string    `json:"user_id"`
+	UserLogin       string    `json:"user_login"`
+	UserName        string    `json:"user_name"`
+	GameID          string    `json:"game_id"`
+	GameName        string    `json:"game_name"`
+	Type            string    `json:"type"`
+	Title           string    `json:"title"`
+	ViewerCount     int       `json:"viewer_count"`
+	StartedAt       time.Time `json:"started_at"`
+	ThumbnailURL    string    `json:"thumbnail_url"`
+	ProfileImageURL string    `json:"profile_image_url,omitempty"`
+	IsLive          bool      `json:"is_live"`
+}
+
+type TwitchStreamResponse struct {
+	Data []TwitchStream `json:"data"`
+}

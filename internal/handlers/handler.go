@@ -15,8 +15,11 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -48,6 +51,14 @@ var adminOAuthConfig = &oauth2.Config{
 	Endpoint:     twitch.Endpoint,
 }
 
+var (
+	channelsToCheck    = []string{} // Список каналов для проверки
+	cacheMutex         = &sync.RWMutex{}
+	cachedLiveChannels []models.TwitchStream
+	lastUpdateTime     time.Time
+	cacheDuration      = time.Minute
+)
+
 func UpdateConfig() {
 	sessionSecret = os.Getenv("SESSION_SECRET")
 	oauthConfig.ClientID = os.Getenv("TWITCH_CLIENT_ID")
@@ -56,6 +67,8 @@ func UpdateConfig() {
 
 	adminOAuthConfig.ClientID = os.Getenv("TWITCH_CLIENT_ID_BOT")
 	adminOAuthConfig.ClientSecret = os.Getenv("TWITCH_CLIENT_SECRET_BOT")
+
+	channelsToCheck = service.LoadChannelsToCheck()
 }
 
 func ServeHomePage(w http.ResponseWriter, r *http.Request) {
@@ -2043,4 +2056,230 @@ func ServeQueuePage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err.Error())
 	}
+}
+
+func GetQueueHandler(w http.ResponseWriter, r *http.Request) {
+	queue, err := service.GetQueue()
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(queue)
+}
+
+func DeleteSubmission(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	subID, _ := strconv.Atoi(vars["id"])
+
+	err := service.DeleteSubmission(subID)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func GetLiveChannelsHandler(w http.ResponseWriter, r *http.Request) {
+	// Устанавливаем заголовки CORS
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	// Проверяем, нужно ли обновить кэш
+	cacheMutex.RLock()
+	needsUpdate := time.Since(lastUpdateTime) > cacheDuration || len(cachedLiveChannels) == 0
+	cacheMutex.RUnlock()
+
+	if needsUpdate {
+		updateLiveChannelsCache()
+	}
+
+	// Получаем кэшированные данные
+	cacheMutex.RLock()
+	liveChannels := make([]models.TwitchStream, len(cachedLiveChannels))
+	copy(liveChannels, cachedLiveChannels)
+	cacheMutex.RUnlock()
+
+	// Разделяем каналы на онлайн и оффлайн
+	var onlineChannels []models.TwitchStream
+	var offlineChannels []models.TwitchStream
+
+	for _, channel := range liveChannels {
+		if channel.IsLive {
+			onlineChannels = append(onlineChannels, channel)
+		} else {
+			offlineChannels = append(offlineChannels, channel)
+		}
+	}
+
+	// Применяем сортировку только к онлайн-каналам
+	sortOrder := r.URL.Query().Get("sort")
+	if sortOrder == "asc" {
+		sort.Slice(onlineChannels, func(i, j int) bool {
+			return onlineChannels[i].ViewerCount < onlineChannels[j].ViewerCount
+		})
+	} else {
+		// По умолчанию сортируем по убыванию
+		sort.Slice(onlineChannels, func(i, j int) bool {
+			return onlineChannels[i].ViewerCount > onlineChannels[j].ViewerCount
+		})
+	}
+
+	// Объединяем онлайн и оффлайн каналы
+	result := append(onlineChannels, offlineChannels...)
+
+	// Возвращаем данные
+	json.NewEncoder(w).Encode(result)
+}
+
+func updateLiveChannelsCache() {
+	var allChannels []models.TwitchStream
+	var mutex sync.Mutex
+
+	// Создаем клиент с таймаутом
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	token, err := service.RefreshTwitchToken()
+	if err != nil {
+		return
+	}
+
+	// Получаем информацию о текущих стримах
+	streamsURL := "https://api.twitch.tv/helix/streams?"
+	for i, channel := range channelsToCheck {
+		if i > 0 {
+			streamsURL += "&"
+		}
+		streamsURL += "user_login=" + channel
+	}
+
+	reqStreams, err := http.NewRequest("GET", streamsURL, nil)
+	if err != nil {
+		fmt.Printf("Error creating streams request: %v\n", err)
+		return
+	}
+	reqStreams.Header.Set("Client-ID", os.Getenv("TWITCH_CLIENT_ID_BOT"))
+	reqStreams.Header.Set("Authorization", "Bearer "+token)
+
+	respStreams, err := client.Do(reqStreams)
+	if err != nil {
+		fmt.Printf("Error making request to Twitch API (streams): %v\n", err)
+		return
+	}
+	defer respStreams.Body.Close()
+
+	bodyStreams, err := ioutil.ReadAll(respStreams.Body)
+	if err != nil {
+		fmt.Printf("Error reading streams response: %v\n", err)
+		return
+	}
+
+	var streamResponse models.TwitchStreamResponse
+	err = json.Unmarshal(bodyStreams, &streamResponse)
+	if err != nil {
+		fmt.Printf("Error parsing streams JSON: %v\n", err)
+		return
+	}
+
+	// Получаем информацию о пользователях (для всех каналов)
+	usersURL := "https://api.twitch.tv/helix/users?"
+	for i, channel := range channelsToCheck {
+		if i > 0 {
+			usersURL += "&"
+		}
+		usersURL += "login=" + channel
+	}
+
+	reqUsers, err := http.NewRequest("GET", usersURL, nil)
+	if err != nil {
+		fmt.Printf("Error creating users request: %v\n", err)
+		return
+	}
+	reqUsers.Header.Set("Client-ID", os.Getenv("TWITCH_CLIENT_ID_BOT"))
+	reqUsers.Header.Set("Authorization", "Bearer "+token)
+
+	respUsers, err := client.Do(reqUsers)
+	if err != nil {
+		fmt.Printf("Error making request to Twitch API (users): %v\n", err)
+		return
+	}
+	defer respUsers.Body.Close()
+
+	bodyUsers, err := ioutil.ReadAll(respUsers.Body)
+	if err != nil {
+		fmt.Printf("Error reading users response: %v\n", err)
+		return
+	}
+
+	var usersResponse models.TwitchUsersResponse
+	err = json.Unmarshal(bodyUsers, &usersResponse)
+	if err != nil {
+		fmt.Printf("Error parsing users JSON: %v\n", err)
+		return
+	}
+
+	// Создаем мапы для быстрого доступа
+	liveStreamsMap := make(map[string]models.TwitchStream)
+	for _, stream := range streamResponse.Data {
+		liveStreamsMap[stream.UserLogin] = stream
+	}
+
+	usersMap := make(map[string]models.TwitchUser)
+	for _, user := range usersResponse.Data {
+		usersMap[user.Login] = user
+	}
+
+	// Формируем список каналов
+	for _, channelLogin := range channelsToCheck {
+		if stream, exists := liveStreamsMap[channelLogin]; exists {
+			// Канал в эфире
+			if user, userExists := usersMap[channelLogin]; userExists {
+				stream.ProfileImageURL = user.ProfileImageURL
+			}
+			stream.IsLive = true
+			mutex.Lock()
+			allChannels = append(allChannels, stream)
+			mutex.Unlock()
+		} else if user, exists := usersMap[channelLogin]; exists {
+			// Канал не в эфире
+			offlineChannel := models.TwitchStream{
+				UserID:          user.ID,
+				UserLogin:       user.Login,
+				UserName:        user.DisplayName,
+				ProfileImageURL: user.ProfileImageURL,
+				IsLive:          false,
+				ViewerCount:     0,
+			}
+			mutex.Lock()
+			allChannels = append(allChannels, offlineChannel)
+			mutex.Unlock()
+		} else {
+			fmt.Printf("Channel %s not found on Twitch\n", channelLogin)
+		}
+	}
+
+	// Обновляем кэш
+	cacheMutex.Lock()
+	cachedLiveChannels = allChannels
+	lastUpdateTime = time.Now()
+	cacheMutex.Unlock()
+}
+
+// Функция для периодического обновления кэша
+func StartCacheUpdater() {
+	ticker := time.NewTicker(cacheDuration)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			updateLiveChannelsCache()
+		}
+	}
+}
+
+func AddLiveChannelHandler(w http.ResponseWriter, r *http.Request) {
+
 }

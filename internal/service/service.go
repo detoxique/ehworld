@@ -614,41 +614,79 @@ func LikeComment(userID, commentID int) error {
 }
 
 func UnlikeFile(userID, fileID int) error {
-	_, err := db.Exec(`
+	liked, _ := HasLiked(userID, fileID)
+	if liked {
+		_, err := db.Exec(`
 		DELETE FROM likes 
 		WHERE user_id = $1 AND file_id = $2
 	`, userID, fileID)
-	if err != nil {
-		return err
-	}
+		if err != nil {
+			return err
+		}
 
-	IncrementRating(userID, -1)
+		var author_id int
+		err = db.QueryRow(`
+		SELECT user_id FROM files
+		WHERE id = $1
+		`, fileID).Scan(&author_id)
+		if err != nil {
+			return err
+		}
 
-	_, err = db.Exec(`
+		if userID != author_id {
+			err = IncrementRating(author_id, -1)
+			if err != nil {
+				return err
+			}
+		}
+
+		_, err = db.Exec(`
 		UPDATE files 
 		SET likes = (SELECT COUNT(*) FROM likes WHERE file_id = $1)
 		WHERE id = $2
 	`, fileID, fileID)
-	return err
+		return err
+	} else {
+		return errors.New("file wasn't liked")
+	}
 }
 
 func UnlikeComment(userID, commentID int) error {
-	_, err := db.Exec(`
+	liked, _ := HasLikedComment(userID, commentID)
+	if liked {
+		_, err := db.Exec(`
 		DELETE FROM comments_likes 
 		WHERE user_id = $1 AND comment_id = $2
 	`, userID, commentID)
-	if err != nil {
-		return err
-	}
+		if err != nil {
+			return err
+		}
 
-	IncrementRating(userID, -1)
+		var author_id int
+		err = db.QueryRow(`
+		SELECT user_id FROM comments
+		WHERE id = $1
+		`, commentID).Scan(&author_id)
+		if err != nil {
+			return err
+		}
 
-	_, err = db.Exec(`
+		if userID != author_id {
+			err = IncrementRating(author_id, -1)
+			if err != nil {
+				return err
+			}
+		}
+
+		_, err = db.Exec(`
 		UPDATE comments 
 		SET likes = (SELECT COUNT(*) FROM comments_likes WHERE comment_id = $1)
 		WHERE id = $2
 	`, commentID, commentID)
-	return err
+		return err
+	} else {
+		return errors.New("comment wasn't liked")
+	}
 }
 
 func HasLiked(userID, fileID int) (bool, error) {
@@ -2561,7 +2599,7 @@ func ApplyItem(itemID, userID int, lot_name string) error {
 				return err
 			}
 		case "auk":
-			_, err = db.Exec("INSERT INTO auk_submissions (user_id, lot) VALUES ($1, $2)", userID, lot_name)
+			_, err = db.Exec("INSERT INTO auk_submissions (user_id, lot, auk_value) VALUES ($1, $2, (SELECT auk_value FROM cases_rewards WHERE id = $3))", userID, lot_name, itemID)
 			if err != nil {
 				return err
 			}
@@ -2576,4 +2614,61 @@ func ApplyItem(itemID, userID int, lot_name string) error {
 	}
 
 	return nil
+}
+
+func GetQueue() ([]models.AukSubmission, error) {
+	var result []models.AukSubmission
+
+	files, err := db.Query(`
+			SELECT auk_submissions.id, users.display_name, users.profile_image_url, auk_submissions.auk_value, auk_submissions.lot
+			FROM auk_submissions, users
+			WHERE auk_submissions.user_id = users.id AND auk_submissions.done = FALSE;
+		`)
+	if err == nil {
+		defer files.Close()
+		for files.Next() {
+			var s models.AukSubmission
+			if err := files.Scan(&s.ID, &s.DisplayName, &s.ProfileImageURL, &s.AukValue, &s.Submission); err == nil {
+				result = append(result, s)
+			}
+		}
+	} else {
+		log.Println("Getting queue error: " + err.Error())
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func DeleteSubmission(submissionID int) error {
+	_, err := db.Exec("UPDATE auk_submissions SET done = TRUE WHERE id = $1", submissionID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func LoadChannelsToCheck() []string {
+	var result []string
+
+	channels, err := db.Query(`
+			SELECT login FROM live_channels
+		`)
+	if err == nil {
+		defer channels.Close()
+		for channels.Next() {
+			var s string
+			if err := channels.Scan(&s); err == nil {
+				result = append(result, strings.ToLower(s))
+			}
+		}
+	} else {
+		log.Println("Getting channels error: " + err.Error())
+		return nil
+	}
+
+	log.Println("Channels loaded: " + strconv.Itoa(len(result)))
+
+	return result
 }

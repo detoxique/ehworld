@@ -9,6 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" href="../static/css/avatar.css">
     <link rel="stylesheet" href="../static/css/header.css">
+    <link rel="stylesheet" href="../static/css/chat.css">
     <style>
         /* Стили для зоны загрузки */
         .upload-container {
@@ -236,12 +237,19 @@
 <body>
     <script src="../static/js/search.js"></script>
     <script src="../static/js/notifications.js"></script>
+    
     <header class="header">
         <a href="/main" class="logo">
             <img src="../static/img/EhWorld.svg" width="148">
         </a>
+
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
         
-        <div class="nav-links">
+        <div class="nav-links" id="navLinks">
             <a href="/main">Главная</a>
             <a href="/feed">Лента</a>
             <a href="/shop">Магазин</a>
@@ -358,6 +366,19 @@
         <a>Файлы Cookie</a>
         <p>Используя наш сайт, вы даете согласие на использование технических файлов Cookie. Мы используем минимальный набор информации, необходимый для функционирования сайта.</p>
         <button class="cookie-btn" id="cookieButton">Good nice</button>
+    </div>
+
+    <div class="chat-widget">
+        <button class="chat-button" id="chatButton">
+            <img src="../static/img/comments.svg" alt="Chat" width="24" height="24">
+        </button>
+        <div class="chat-container" id="chatContainer">
+            <iframe src="https://www.twitch.tv/embed/ehchobyah/chat?parent=ehworld.ru"
+                    height="200"
+                    width="600">
+            </iframe>
+            <button class="close-chat" id="closeChat">-</button>
+        </div>
     </div>
     
     <script>
@@ -606,6 +627,8 @@
         });
     </script>
     
+    <script src="../static/js/header.js"></script>
+    <script src="../static/js/chat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 </html>

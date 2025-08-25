@@ -12,14 +12,23 @@
     <link rel="stylesheet" href="../static/css/header.css">
     <link rel="stylesheet" href="../static/css/footer.css">
     <link rel="stylesheet" href="../static/css/search.css">
+    <link rel="stylesheet" href="../static/css/chat.css">
+    <link rel="stylesheet" href="../static/css/live-panel-.css">
+    <link rel="stylesheet" href="../static/css/top-users.css">
 </head>
 <body>
     <header class="header">
         <a href="#" class="logo">
             <img src="../static/img/EhWorld.svg" width="148">
         </a>
+
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
         
-        <div class="nav-links">
+        <div class="nav-links" id="navLinks">
             <a href="#">Главная</a>
             <a href="/feed">Лента</a>
             <a href="/shop">Магазин</a>
@@ -85,148 +94,179 @@
         </div>
     </header>
 
-<div class="container-md">
-    <div class="title">
-        <a>Главная</a>
-    </div>
-
-    <div class="content">
-        <div class="section">
-            <div class="weekly-best">
-            <p class="titles">Лучшее за неделю</p>
-
-            <div class="posts-container">
-            {{ range .MostPopularFiles }}
-            <a href="/post/{{.ID}}" class="post-card">
-                <div class="post-thumbnail">
-                    {{ if eq .Type "clip" }}
-                        <img src="{{.Thumbnail}}" alt="{{.Title}}">
-                        <div class="play-icon">▶</div>
-                    {{ else }}
-                        {{ if isVideo .FileName }}
-                        <img src="../static/uploads/{{.Thumbnail}}" alt="{{.Title}}">
-                        <div class="play-icon">▶</div>
-                        {{ else}}
-                        <img src="../static/uploads/{{.FileName}}" alt="{{.Title}}">
-                        {{ end }}
-                    {{ end }}
-                </div>
-                <div class="post-content">
-                    <h3 class="post-title">{{.Title}}</h3>
-                    <p class="post-author" onclick="window.location.href='/user/{{ .AuthorName }}'">@{{.AuthorName}}</p>
-                    <div class="post-stats">
-                        <span class="views">{{ formatViews .Views}}</span>
-                    </div>
-                </div>
-            </a>
-            {{ end }}
-            </div>
-        </div>
+    <div class="main-container">
         
-        <div class="section">
-            <p class="titles">Последние загрузки</p>
-
-            <div class="grid-container" id="lastFilesGrid">
-                {{ range .LastFiles }}
-                <a href="/post/{{.ID}}" class="post-card">
-                    <div class="post-thumbnail">
-                        {{ if eq .Type "clip" }}
-                            <img src="{{.Thumbnail}}" alt="{{.Title}}">
-                            <div class="play-icon">▶</div>
-                        {{ else }}
-                            {{ if isVideo .FileName }}
-                            <img src="../static/uploads/{{.Thumbnail}}" alt="{{.Title}}">
-                            <div class="play-icon">▶</div>
-                            {{ else}}
-                            <img src="../static/uploads/{{.FileName}}" alt="{{.Title}}">
-                            {{ end }}
-                        {{ end }}
-                    </div>
-                    <div class="post-content">
-                        <h3 class="post-title">{{.Title}}</h3>
-                        <p class="post-author" onclick="window.location.href='/user/{{ .AuthorName }}'">@{{.AuthorName}}</p>
-                        <div class="post-stats">
-                            <!-- <span class="likes">❤️ {{.Likes}}</span> -->
-                            <span class="views">{{ formatViews .Views}}</span>
+        <div class="content-container">
+            <div class="content-wrapper">
+                <div class="section">
+                    <div class="live-panel">
+                        <div class="live-panel-header">
+                            <h3>Отслеживаемые каналы</h3>
+                            <div class="sort-controls">
+                                <span>Сортировка:</span>
+                                <select id="viewersSort" class="viewers-sort">
+                                    <option value="desc">По убыванию</option>
+                                    <option value="asc">По возрастанию</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="live-channels" id="liveChannels">
+                            <div class="loading-channels">Загрузка каналов...</div>
                         </div>
                     </div>
-                </a>
-                {{ end }}
-            </div>
+                </div>
+                
+                <div class="container-md">
+                    <div class="title">
+                        <a>Главная</a>
+                    </div>
 
-            <div class="load-more-container">
-                <button id="loadMoreBtn" class="load-more-btn">Загрузить еще</button>
-            </div>
-        </div>
+                    <div class="content">
+                        <div class="section">
+                            <div class="weekly-best">
+                            <p class="titles">Лучшее за неделю</p>
 
-        {{ if hasFollowings .User.ID}}
-        <div class="section">
-            <p class="titles">Подписки</p>
-
-            <div class="posts-container">
-                {{ range .Followings }}
-                <a href="/post/{{.ID}}" class="post-card">
-                    <div class="post-thumbnail">
-                        {{ if eq .Type "clip" }}
-                            <img src="{{.Thumbnail}}" alt="{{.Title}}">
-                            <div class="play-icon">▶</div>
-                        {{ else }}
-                            {{ if isVideo .FileName }}
-                            <img src="../static/uploads/{{.Thumbnail}}" alt="{{.Title}}">
-                            <div class="play-icon">▶</div>
-                            {{ else}}
-                            <img src="../static/uploads/{{.FileName}}" alt="{{.Title}}">
+                            <div class="posts-container">
+                            {{ range .MostPopularFiles }}
+                            <a href="/post/{{.ID}}" class="post-card">
+                                <div class="post-thumbnail">
+                                    {{ if eq .Type "clip" }}
+                                        <img src="{{.Thumbnail}}" alt="{{.Title}}">
+                                        <div class="play-icon">▶</div>
+                                    {{ else }}
+                                        {{ if isVideo .FileName }}
+                                        <img src="../static/uploads/{{.Thumbnail}}" alt="{{.Title}}">
+                                        <div class="play-icon">▶</div>
+                                        {{ else}}
+                                        <img src="../static/uploads/{{.FileName}}" alt="{{.Title}}">
+                                        {{ end }}
+                                    {{ end }}
+                                </div>
+                                <div class="post-content">
+                                    <h3 class="post-title">{{.Title}}</h3>
+                                    <p class="post-author" onclick="window.location.href='/user/{{ .AuthorName }}'">@{{.AuthorName}}</p>
+                                    <div class="post-stats">
+                                        <span class="views">{{ formatViews .Views}}</span>
+                                    </div>
+                                </div>
+                            </a>
                             {{ end }}
-                        {{ end }}
-                    </div>
-                    <div class="post-content">
-                        <h3 class="post-title">{{.Title}}</h3>
-                        <p class="post-author" onclick="window.location.href='/user/{{ .AuthorName }}'">@{{.AuthorName}}</p>
-                        <div class="post-stats">
-                            <!-- <span class="likes">❤️ {{.Likes}}</span> -->
-                            <span class="views">{{ formatViews .Views}}</span>
+                            </div>
                         </div>
-                    </div>
-                </a>
-                {{ end }}
-            </div>
-        </div>
-        {{ end }}
-            
-        <div class="section">
-            <p class="titles">Вы недавно смотрели</p>
+                        
+                        <div class="section">
+                            <p class="titles">Последние загрузки</p>
 
-            <div class="posts-container">
-            {{ range .LastSeen }}
-            <a href="/post/{{.ID}}" class="post-card">
-                <div class="post-thumbnail">
-                    {{ if eq .Type "clip" }}
-                        <img src="{{.Thumbnail}}" alt="{{.Title}}">
-                        <div class="play-icon">▶</div>
-                    {{ else }}
-                        {{ if isVideo .FileName }}
-                        <img src="../static/uploads/{{.Thumbnail}}" alt="{{.Title}}">
-                        <div class="play-icon">▶</div>
-                        {{ else}}
-                        <img src="../static/uploads/{{.FileName}}" alt="{{.Title}}">
+                            <div class="grid-container" id="lastFilesGrid">
+                                {{ range .LastFiles }}
+                                <a href="/post/{{.ID}}" class="post-card">
+                                    <div class="post-thumbnail">
+                                        {{ if eq .Type "clip" }}
+                                            <img src="{{.Thumbnail}}" alt="{{.Title}}">
+                                            <div class="play-icon">▶</div>
+                                        {{ else }}
+                                            {{ if isVideo .FileName }}
+                                            <img src="../static/uploads/{{.Thumbnail}}" alt="{{.Title}}">
+                                            <div class="play-icon">▶</div>
+                                            {{ else}}
+                                            <img src="../static/uploads/{{.FileName}}" alt="{{.Title}}">
+                                            {{ end }}
+                                        {{ end }}
+                                    </div>
+                                    <div class="post-content">
+                                        <h3 class="post-title">{{.Title}}</h3>
+                                        <p class="post-author" onclick="window.location.href='/user/{{ .AuthorName }}'">@{{.AuthorName}}</p>
+                                        <div class="post-stats">
+                                            <!-- <span class="likes">❤️ {{.Likes}}</span> -->
+                                            <span class="views">{{ formatViews .Views}}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                                {{ end }}
+                            </div>
+
+                            <div class="load-more-container">
+                                <button id="loadMoreBtn" class="load-more-btn">Загрузить еще</button>
+                            </div>
+                        </div>
+
+                        {{ if hasFollowings .User.ID}}
+                        <div class="section">
+                            <p class="titles">Подписки</p>
+
+                            <div class="posts-container">
+                                {{ range .Followings }}
+                                <a href="/post/{{.ID}}" class="post-card">
+                                    <div class="post-thumbnail">
+                                        {{ if eq .Type "clip" }}
+                                            <img src="{{.Thumbnail}}" alt="{{.Title}}">
+                                            <div class="play-icon">▶</div>
+                                        {{ else }}
+                                            {{ if isVideo .FileName }}
+                                            <img src="../static/uploads/{{.Thumbnail}}" alt="{{.Title}}">
+                                            <div class="play-icon">▶</div>
+                                            {{ else}}
+                                            <img src="../static/uploads/{{.FileName}}" alt="{{.Title}}">
+                                            {{ end }}
+                                        {{ end }}
+                                    </div>
+                                    <div class="post-content">
+                                        <h3 class="post-title">{{.Title}}</h3>
+                                        <p class="post-author" onclick="window.location.href='/user/{{ .AuthorName }}'">@{{.AuthorName}}</p>
+                                        <div class="post-stats">
+                                            <!-- <span class="likes">❤️ {{.Likes}}</span> -->
+                                            <span class="views">{{ formatViews .Views}}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                                {{ end }}
+                            </div>
+                        </div>
                         {{ end }}
-                    {{ end }}
-                </div>
-                <div class="post-content">
-                    <h3 class="post-title">{{.Title}}</h3>
-                    <p class="post-author" onclick="window.location.href='/user/{{ .AuthorName }}'">@{{.AuthorName}}</p>
-                    <div class="post-stats">
-                        <!-- <span class="likes">❤️ {{.Likes}}</span> -->
-                        <span class="views">{{ formatViews .Views}}</span>
+                            
+                        <div class="section">
+                            <p class="titles">Вы недавно смотрели</p>
+
+                            <div class="posts-container">
+                            {{ range .LastSeen }}
+                            <a href="/post/{{.ID}}" class="post-card">
+                                <div class="post-thumbnail">
+                                    {{ if eq .Type "clip" }}
+                                        <img src="{{.Thumbnail}}" alt="{{.Title}}">
+                                        <div class="play-icon">▶</div>
+                                    {{ else }}
+                                        {{ if isVideo .FileName }}
+                                        <img src="../static/uploads/{{.Thumbnail}}" alt="{{.Title}}">
+                                        <div class="play-icon">▶</div>
+                                        {{ else}}
+                                        <img src="../static/uploads/{{.FileName}}" alt="{{.Title}}">
+                                        {{ end }}
+                                    {{ end }}
+                                </div>
+                                <div class="post-content">
+                                    <h3 class="post-title">{{.Title}}</h3>
+                                    <p class="post-author" onclick="window.location.href='/user/{{ .AuthorName }}'">@{{.AuthorName}}</p>
+                                    <div class="post-stats">
+                                        <!-- <span class="likes">❤️ {{.Likes}}</span> -->
+                                        <span class="views">{{ formatViews .Views}}</span>
+                                    </div>
+                                </div>
+                            </a>
+                            {{ end }}
+                            </div>
+                        </div>
+                            
                     </div>
                 </div>
-            </a>
-            {{ end }}
+                
+                </div>
+            
+                <div class="top-panel">
+                    <p class="titles"></p>
+                </div>
             </div>
         </div>
-            
     </div>
-</div>
     
     <!-- Уведомление о Cookie -->
     <div class="cookie-notice" id="cookieNotice">
@@ -235,39 +275,66 @@
         <button class="cookie-btn" id="cookieButton">Good nice</button>
     </div>
 
+    <div class="chat-widget">
+        <button class="chat-button" id="chatButton">
+            <img src="../static/img/comments.svg" alt="Chat" width="24" height="24">
+        </button>
+        <div class="chat-container" id="chatContainer">
+            <iframe src="https://www.twitch.tv/embed/ehchobyah/chat?parent=ehworld.ru"
+                    height="200"
+                    width="600">
+            </iframe>
+            <button class="close-chat" id="closeChat">-</button>
+        </div>
+    </div>
+
     <footer class="footer">
-        <div class="container-fluid">
-            <div class="row">
-            <div class="col-md-4 footer-section">
-                <h5>Ehworld</h5>
-                <p>Лучшая платформа для обмена файлами</p> <a href="https://www.twitch.tv/detoxique">Разработчик: detoxique</a>
-            </div>
-            <div class="col-md-4 footer-section">
-                <h5>Навигация</h5>
-                <ul>
-                    <li><a href="#">Главная</a></li>
-                    <li><a href="/feed">Лента</a></li>
-                    <li><a href="/upload">Загрузить</a></li>
-                </ul>
-            </div>
-            <div class="col-md-4 footer-section">
-                <h5>Контакты</h5>
-                <ul>
-                    <li><a href="https://t.me/funeralarchangel">Обратная связь</a></li>
-                    <li><a href="mailto:ehchobyah@gmail.com">ehchobyah@gmail.com</a></li>
-                    <li><a href="https://discord.gg/mMJfnkHQMg">Discord</a></li>
-                    <li><a href="https://www.twitch.tv/ehchobyah">Twitch</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>© 2025 Ehworld. Все права защищены.</p>
-        </div>
-        </div>
-    
-</footer>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-4 footer-section">
+                            <h5>Ehworld</h5>
+                            <p>Лучшая платформа для обмена файлами</p> <a href="https://www.twitch.tv/detoxique">Разработчик: detoxique</a>
+                        </div>
+                        <div class="col-md-4 footer-section">
+                            <h5>Навигация</h5>
+                            <ul>
+                                <li><a href="#">Главная</a></li>
+                                <li><a href="/feed">Лента</a></li>
+                                <li><a href="/upload">Загрузить</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 footer-section">
+                            <h5>Контакты</h5>
+                            <ul>
+                                <li><a href="https://t.me/funeralarchangel">Обратная связь</a></li>
+                                <li><a href="mailto:ehchobyah@gmail.com">ehchobyah@gmail.com</a></li>
+                                <li><a href="https://discord.gg/mMJfnkHQMg">Discord</a></li>
+                                <li><a href="https://www.twitch.tv/ehchobyah">Twitch</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                        <div class="footer-bottom">
+                            <p>© 2025 Ehworld. Все права защищены.</p>
+                        </div>
+                    </div>
+            </footer>
+
+    <script src="../static/js/header.js"></script>
+    <script src="../static/js/chat.js"></script>
+    <script src="../static/js/live-panel.js"></script>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Загружаем каналы при загрузке страницы
+            loadLiveChannels();
+            
+            // Обновляем при изменении сортировки
+            document.getElementById('viewersSort').addEventListener('change', loadLiveChannels);
+            
+            // Обновляем каждую минуту
+            setInterval(loadLiveChannels, 60000);
+        });
+
         // Проверяем, было ли уже принято соглашение
         window.addEventListener('DOMContentLoaded', function() {
             if (localStorage.getItem('cookieAccepted') === 'true') {

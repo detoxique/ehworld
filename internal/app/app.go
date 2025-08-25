@@ -21,6 +21,8 @@ func Run() {
 	service.InitDB()
 	handlers.UpdateConfig()
 
+	go handlers.StartCacheUpdater()
+
 	value := os.Getenv("PORT")
 
 	// Настройка маршрутов
@@ -68,6 +70,7 @@ func Run() {
 	r.HandleFunc("/api/case-open/{id}", handlers.AuthMiddleware(handlers.OpenCaseHandler)).Methods("POST")
 	r.HandleFunc("/api/apply-badge/{id}", handlers.AuthMiddleware(handlers.ApplyBadgeHandler)).Methods("POST")
 	r.HandleFunc("/api/apply-item/{id}", handlers.AuthMiddleware(handlers.ApplyItem)).Methods("POST")
+	r.HandleFunc("/api/live-channels", handlers.GetLiveChannelsHandler).Methods("GET")
 
 	// Модераторские API
 	r.HandleFunc("/api/moderation/posts/{page}", handlers.ModeratorMiddleware(handlers.GetModerationPostsHandler)).Methods("GET")
@@ -86,6 +89,9 @@ func Run() {
 	r.HandleFunc("/api/admin/add-case", handlers.AdminMiddleware(handlers.AddCaseHandler)).Methods("POST")
 	r.HandleFunc("/api/admin/add-rewards", handlers.AdminMiddleware(handlers.AddRewardsHandler)).Methods("POST")
 	r.HandleFunc("/api/admin/badges", handlers.AdminMiddleware(handlers.GetBadgesHandler))
+	r.HandleFunc("/api/admin/queue", handlers.AdminMiddleware(handlers.GetQueueHandler)).Methods("GET")
+	r.HandleFunc("/api/admin/queue/{id}", handlers.AdminMiddleware(handlers.DeleteSubmission)).Methods("DELETE")
+	r.HandleFunc("/api/admin/livechannel/{username}", handlers.AdminMiddleware(handlers.AddLiveChannelHandler)).Methods("POST", "DELETE")
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 

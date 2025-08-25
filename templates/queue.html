@@ -11,16 +11,26 @@
     <link rel="stylesheet" href="../static/css/header.css">
     <link rel="stylesheet" href="../static/css/search.css">
     <link rel="stylesheet" href="../static/css/footer.css">
+    <link rel="stylesheet" href="../static/css/queue.css">
+    <link rel="stylesheet" href="../static/css/chat.css">
 </head>
 <body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <script src="../static/js/search.js"></script>
     <script src="../static/js/notifications.js"></script>
+    
     <header class="header">
         <a href="/main" class="logo">
             <img src="../static/img/EhWorld.svg" width="148">
         </a>
+
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
         
-        <div class="nav-links">
+        <div class="nav-links" id="navLinks">
             <a href="/main">Главная</a>
             <a href="/feed">Лента</a>
             <a href="/shop">Магазин</a>
@@ -96,35 +106,21 @@
             
     </div>
 
-    <footer class="footer">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-4 footer-section">
-                    <h5>Ehworld</h5>
-                    <p>Лучшая платформа для обмена файлами</p> <a href="https://www.twitch.tv/detoxique">Разработчик: detoxique</a>
-                </div>
-                <div class="col-md-4 footer-section">
-                    <h5>Навигация</h5>
-                    <ul>
-                        <li><a href="#">Главная</a></li>
-                        <li><a href="/feed">Лента</a></li>
-                        <li><a href="/upload">Загрузить</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4 footer-section">
-                    <h5>Контакты</h5>
-                    <ul>
-                        <li><a href="mailto:ehchobyah@gmail.com">ehchobyah@gmail.com</a></li>
-                        <li><a href="https://discord.gg/mMJfnkHQMg">Discord</a></li>
-                        <li><a href="https://www.twitch.tv/ehchobyah">Twitch</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>© 2025 Ehworld. Все права защищены.</p>
-            </div>
-            </div>
-        
-    </footer>
+    <div class="chat-widget">
+        <button class="chat-button" id="chatButton">
+            <img src="../static/img/comments.svg" alt="Chat" width="24" height="24">
+        </button>
+        <div class="chat-container" id="chatContainer">
+            <iframe src="https://www.twitch.tv/embed/ehchobyah/chat?parent=ehworld.ru"
+                    height="200"
+                    width="600">
+            </iframe>
+            <button class="close-chat" id="closeChat">-</button>
+        </div>
+    </div>
+
+    <script src="../static/js/queue.js"></script>
+    <script src="../static/js/header.js"></script>
+    <script src="../static/js/chat.js"></script>
 </body>
 </html>

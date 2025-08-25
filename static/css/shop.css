@@ -61,6 +61,10 @@
     font-weight: 700;
 }
 
+.balance-title {
+    max-width: 600px;
+}
+
 .badge-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

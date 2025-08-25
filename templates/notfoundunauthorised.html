@@ -11,15 +11,23 @@
     <link rel="stylesheet" href="../static/css/notfound.css">
     <link rel="stylesheet" href="../static/css/header.css">
     <link rel="stylesheet" href="../static/css/search.css">
+    <link rel="stylesheet" href="../static/css/chat.css">
 </head>
 <body>
     <script src="../static/js/search.js"></script>
+    
     <header class="header">
         <a href="/main" class="logo">
             <img src="../static/img/EhWorld.svg" width="128">
         </a>
+
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
         
-        <div class="nav-links">
+        <div class="nav-links" id="navLinks">
             <a href="/main">Главная</a>
             <a href="/feed">Лента</a>
             <a href="/shop">Магазин</a>
@@ -44,5 +52,21 @@
         <h2>404</h2>
         <h3>Страница не найдена</h3>
     </div>
+
+    <div class="chat-widget">
+        <button class="chat-button" id="chatButton">
+            <img src="../static/img/comments.svg" alt="Chat" width="24" height="24">
+        </button>
+        <div class="chat-container" id="chatContainer">
+            <iframe src="https://www.twitch.tv/embed/ehchobyah/chat?parent=ehworld.ru"
+                    height="200"
+                    width="600">
+            </iframe>
+            <button class="close-chat" id="closeChat">-</button>
+        </div>
+    </div>
+
+    <script src="../static/js/header.js"></script>
+    <script src="../static/js/chat.js"></script>
 </body>
 </html>

@@ -12,16 +12,24 @@
     <link rel="stylesheet" href="../static/css/header.css">
     <link rel="stylesheet" href="../static/css/search.css">
     <link rel="stylesheet" href="../static/css/footer.css">
+    <link rel="stylesheet" href="../static/css/chat.css">
 </head>
 <body>
     <script src="../static/js/search.js"></script>
     <script src="../static/js/notifications.js"></script>
+    
     <header class="header">
         <a href="/main" class="logo">
             <img src="../static/img/EhWorld.svg" width="148">
         </a>
+
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
         
-        <div class="nav-links">
+        <div class="nav-links" id="navLinks">
             <a href="/main">Главная</a>
             <a href="/feed">Лента</a>
             <a href="/shop">Магазин</a>
@@ -97,7 +105,7 @@
                         <img src=" {{ .User.Badge }}" alt="Badge" class="user-badge" width="40" height="40">
                         {{ end }}
                     </div>
-                    <p>Здесь вы можете приобрести VIP статус и значки для своего профиля</p>
+                    <p>Здесь вы можете приобрести VIP статус и значки для своего профиля. Эхчокоины можно получить за лайки на Ваши посты и комментарии! Учитывайте, что собственные лайки не учитываются</p>
                 </div>
                 <div class="balance-amount">
                     <h2>Ваш баланс</h2>
@@ -199,6 +207,19 @@
         </div>
     </div>
 
+    <div class="chat-widget">
+        <button class="chat-button" id="chatButton">
+            <img src="../static/img/comments.svg" alt="Chat" width="24" height="24">
+        </button>
+        <div class="chat-container" id="chatContainer">
+            <iframe src="https://www.twitch.tv/embed/ehchobyah/chat?parent=ehworld.ru"
+                    height="200"
+                    width="600">
+            </iframe>
+            <button class="close-chat" id="closeChat">-</button>
+        </div>
+    </div>
+
     <footer class="footer">
         <div class="container-md">
             <div class="row">
@@ -229,6 +250,8 @@
             </div>
         
     </footer>
-<script src="../static/js/shop.js"></script>
+    <script src="../static/js/shop.js"></script>
+    <script src="../static/js/header.js"></script>
+    <script src="../static/js/chat.js"></script>
 </body>
 </html>

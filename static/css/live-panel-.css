@@ -1,0 +1,165 @@
+.live-panel {
+    width: 320px;
+    flex-shrink: 0;
+    background: rgba(49, 49, 49, 0.6);
+    border-radius: 16px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+    position: sticky;
+    top: 100px;
+    scrollbar-width: thin;
+    scrollbar-color: #666666 #161616;
+}
+
+.live-panel-header {
+    /* display: flex; */
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.live-panel-header h3 {
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0;
+    margin-bottom: 5px;
+}
+
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.viewers-sort {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #272727;
+    background: rgb(48, 48, 48);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #fff;
+}
+
+.viewers-sort:focus {
+    outline: none;
+    border-color: #4a6cf7;
+    box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
+}
+
+/* Стили для списка каналов */
+.live-channels {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.channel-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.channel-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.channel-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.channel-info {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.channel-name {
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.channel-category {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.channel-viewers {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.viewer-count {
+    font-weight: 600;
+    color: white;
+}
+
+.viewer-dot {
+    width: 8px;
+    height: 8px;
+    background: #e91916;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.loading-channels,
+.no-live-channels,
+.channels-error {
+    text-align: center;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
+.channel-item.offline .channel-avatar {
+    filter: grayscale(100%);
+    opacity: 0.7;
+}
+
+.channel-item.offline .channel-name,
+.channel-item.offline .channel-category,
+.channel-item.offline .channel-viewers {
+    opacity: 0.6;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 1024px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+    
+    .live-panel {
+        width: 100%;
+        max-height: none;
+        position: static;
+        order: 2;
+    }
+    
+    .content-container {
+        order: 1;
+    }
+}

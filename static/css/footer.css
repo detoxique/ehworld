@@ -11,6 +11,8 @@
     /* width: 100vw;
     margin-left: calc(-50vw + 50%); */
     left: 0;
+    max-width: 1440px;
+    margin: 0 auto;
 }
 
 .footer-section {

@@ -150,6 +150,39 @@ CREATE TABLE auk_submissions (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+CREATE TABLE live_channels (
+    id SERIAL PRIMARY KEY,
+    login TEXT NOT NULL
+);
+
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    badge_id INTEGER REFERENCES badges(id) ON DELETE CASCADE,
+    content TEXT,
+    is_anonymous BOOLEAN DEFAULT FALSE,
+    sent_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE messages_files (
+    id SERIAL PRIMARY KEY,
+    message_id INTEGER REFERENCES messages(id) ON DELETE CASCADE,
+    file_name TEXT NOT NULL
+);
+
+insert into live_channels (login) values ('ehchobyah');
+insert into live_channels (login) values ('detoxique');
+insert into live_channels (login) values ('real_nutt');
+insert into live_channels (login) values ('cowbasska');
+insert into live_channels (login) values ('jonyatripper');
+insert into live_channels (login) values ('SanyaMutant');
+insert into live_channels (login) values ('xaritooshka');
+insert into live_channels (login) values ('lehanesp');
+insert into live_channels (login) values ('rud3_3r');
+insert into live_channels (login) values ('lalipinkcheeks');
+insert into live_channels (login) values ('praabeg');
+insert into live_channels (login) values ('9_9_3');
+
 CREATE INDEX idx_files_moderation ON files (is_public, uploaded_at);
 CREATE INDEX idx_last_seen_user_post ON last_seen(user_id, post_id);
 

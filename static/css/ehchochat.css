@@ -1,0 +1,236 @@
+.chat-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.chat-button {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #363636;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed !important;
+    bottom: 20px;
+    right: 20px;
+}
+
+.chat-container {
+    position: sticky;
+    bottom: 60px;
+    right: 0;
+    width: 350px;
+    height: 500px;
+    background: rgba(49, 49, 49, 0.95);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px 12px 0 0;
+}
+
+.chat-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.close-chat {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.messages-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #666666 #161616;
+}
+
+.message {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    max-width: 100%;
+    word-break: break-word;
+}
+
+.message-header {
+    display: flex;
+    /* justify-content: space-between; */
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.message-badge {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+
+.message-user {
+    font-weight: 600;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.message-time {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.message-content {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.message-image {
+    max-width: 100%;
+    max-height: 150px;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+.message-audio {
+    width: 100%;
+    margin-top: 5px;
+}
+
+.chat-input-container {
+    padding: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.file-preview {
+    margin-bottom: 8px;
+    max-height: 100px;
+    overflow: hidden;
+}
+
+.preview-item {
+    position: relative;
+    display: inline-block;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+.preview-item img {
+    max-height: 80px;
+    border-radius: 4px;
+}
+
+.preview-item audio {
+    height: 30px;
+    width: 200px;
+}
+
+.remove-preview {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.input-group {
+    display: flex;
+    gap: 8px;
+    
+}
+
+#messageInput {
+    flex-grow: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 8px 15px;
+    color: white;
+    outline: none;
+}
+
+#messageInput:focus {
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.file-input-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+}
+
+.file-input-label:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+}
+
+#sendMessageBtn {
+    background: #772ce8;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 15px;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#sendMessageBtn:hover {
+    background: #9147ff;
+}
+
+@media (max-width: 1024px) {
+    .chat-container {
+        width: 300px;
+        height: 350px;
+    }
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        width: calc(100% - 40px);
+        left: 20px;
+        right: 20px;
+    }
+}

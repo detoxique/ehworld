@@ -9,10 +9,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" href="../static/css/avatar.css">
     <link rel="stylesheet" href="../static/css/post.css">
-    <link rel="stylesheet" href="../static/css/header.css">
+    <link rel="stylesheet" href="../static/css/header-.css">
     <link rel="stylesheet" href="../static/css/search.css">
     <link rel="stylesheet" href="../static/css/video.css">
-    <link rel="stylesheet" href="../static/css/chat.css">
+    <link rel="stylesheet" href="../static/css/ehchochat.css">
 </head>
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
@@ -293,17 +293,41 @@
             <img src="../static/img/comments.svg" alt="Chat" width="24" height="24">
         </button>
         <div class="chat-container" id="chatContainer">
-            <iframe src="https://www.twitch.tv/embed/ehchobyah/chat?parent=ehworld.ru"
-                    height="200"
-                    width="600">
-            </iframe>
-            <button class="close-chat" id="closeChat">-</button>
+            <div class="chat-header">
+                <h4>Чат</h4>
+                <button class="close-chat" id="closeChat">×</button>
+            </div>
+            <div class="messages-container" id="messagesContainer">
+                <!-- Сообщения будут загружаться здесь -->
+            </div>
+            <div class="chat-input-container">
+                <div class="file-preview" id="filePreview"></div>
+                <div class="input-group">
+                    <input type="text" id="messageInput" placeholder="Введите сообщение...">
+                    <label for="fileInput" class="file-input-label">
+                        <img src="../static/img/paperclip.svg" alt="Прикрепить файл" width="20" height="20">
+                    </label>
+                    <input type="file" id="fileInput" accept="image/*,audio/*" style="display: none;">
+                    <button id="sendMessageBtn">Отправить</button>
+                </div>
+            </div>
         </div>
     </div>
 
+    <script src="../static/js/ehchochat-.js"></script>
+
     <script>
-    // Лайки
+    let lastLikeClick = 0;
+    let lastFuckYouClick = 0;
+    let lastCommentLikeClick = 0;
+    const CLICK_DELAY = 120;
+
+    // Лайки поста
     document.getElementById('like-container').addEventListener('click', function() {
+        const now = Date.now();
+        if (now - lastLikeClick < CLICK_DELAY) return;
+        lastLikeClick = now;
+        
         const isLiked = document.getElementById('likeBtn').classList.contains('liked');
         if (!isLiked) {
             fetch(`/api/like/{{ .File.ID }}`, { method: 'POST' })
@@ -331,26 +355,26 @@
                 }
             });
         }
-        
     });
 
     // Лайк комментария
-    document.querySelectorAll('.like-comment').forEach(btn => {
-        btn.addEventListener('click', function() {
-
-            const commentId = this.dataset.commentId;
-            
-        const isLiked = btn.querySelector('button').classList.contains('liked');
-        const commentID = this.dataset.commentId
+    document.getElementById('commentsList').addEventListener('click', function(e) {
+        const likeBtn = e.target.closest('.like-comment');
+        if (!likeBtn) return;
+        
+        const now = Date.now();
+        if (now - lastCommentLikeClick < CLICK_DELAY) return;
+        lastCommentLikeClick = now;
+        
+        const commentId = likeBtn.dataset.commentId;
+        const isLiked = likeBtn.querySelector('button').classList.contains('liked');
+        
         if (!isLiked) {
-            fetch(`/api/likecomment/${commentID}`, { method: 'POST' })
+            fetch(`/api/likecomment/${commentId}`, { method: 'POST' })
             .then(response => {
                 if (response.ok) {
-                    btn.querySelector('button').classList.toggle('liked');
-
-
-                    
-                    const likesCount = btn.querySelector('span');
+                    likeBtn.querySelector('button').classList.toggle('liked');
+                    const likesCount = likeBtn.querySelector('span');
                     likesCount.textContent = isLiked ? 
                         parseInt(likesCount.textContent) - 1 : 
                         parseInt(likesCount.textContent) + 1;
@@ -358,19 +382,17 @@
             });
         }
         else {
-            fetch(`/api/likecomment/${commentID}`, { method: 'DELETE' })
+            fetch(`/api/likecomment/${commentId}`, { method: 'DELETE' })
             .then(response => {
                 if (response.ok) {
-                    btn.querySelector('button').classList.toggle('liked');
-                    
-                    const likesCount = btn.querySelector('span');
+                    likeBtn.querySelector('button').classList.toggle('liked');
+                    const likesCount = likeBtn.querySelector('span');
                     likesCount.textContent = isLiked ? 
                         parseInt(likesCount.textContent) - 1 : 
                         parseInt(likesCount.textContent) + 1;
                 }
             });
         }
-        });
     });
 
     // Отправка комментария
@@ -514,6 +536,10 @@
 
     // Обработчик для среднего пальца
     document.getElementById('fuckyou-container').addEventListener('click', function() {
+        const now = Date.now();
+        if (now - lastFuckYouClick < CLICK_DELAY) return;
+        lastFuckYouClick = now;
+        
         const isFuckYou = document.getElementById('fuckyouBtn').classList.contains('fuckyou');
         const fuckyouCount = document.querySelector('.fuckyou-count');
         
@@ -535,6 +561,7 @@
             });
         }
     });
+
     // Обработка кнопки "Продолжить" для непромодерированного контента
     document.getElementById('continueBtn')?.addEventListener('click', function() {
         document.querySelector('.moderation-overlay').style.display = 'none';

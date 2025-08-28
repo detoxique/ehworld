@@ -59,6 +59,13 @@ var (
 	cacheDuration      = time.Minute
 )
 
+var (
+	leaderboardMutex       = &sync.RWMutex{}
+	cachedTopAuthors       []models.User
+	leaderboardLastUpdated time.Time
+	updateInterval         = time.Minute
+)
+
 func UpdateConfig() {
 	sessionSecret = os.Getenv("SESSION_SECRET")
 	oauthConfig.ClientID = os.Getenv("TWITCH_CLIENT_ID")
@@ -582,6 +589,8 @@ func ServeMainPage(w http.ResponseWriter, r *http.Request) {
 		"checkAdminRole":   service.CheckAdminRole,
 		"hasNotifications": service.HasNotifications,
 		"hasFollowings":    service.HasFollowings,
+		"formatLikes":      service.FormatLikes,
+		"formatValue":      service.FormatValue,
 	}).ParseFiles("templates/main.html")
 	if err != nil {
 		log.Println(err.Error())
@@ -1110,9 +1119,19 @@ func LikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	userID, _ := session.Values["user_id"].(int)
 
 	if r.Method == "POST" {
-		service.LikeComment(userID, fileID)
+		err := service.LikeComment(userID, fileID)
+		if err != nil {
+			log.Println("Не удалось поставить лайк комментарию: " + err.Error())
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
 	} else {
-		service.UnlikeComment(userID, fileID)
+		err := service.UnlikeComment(userID, fileID)
+		if err != nil {
+			log.Println("Не удалось убрать лайк с комментария: " + err.Error())
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -2267,7 +2286,21 @@ func updateLiveChannelsCache() {
 	cacheMutex.Unlock()
 }
 
-// Функция для периодического обновления кэша
+func updateTopAuthorsCache() {
+	go func() {
+		authors, err := service.GetLeaderboard()
+		if err != nil {
+			log.Printf("Ошибка при обновлении кэша: %v", err)
+			return
+		}
+
+		leaderboardMutex.Lock()
+		defer leaderboardMutex.Unlock()
+		cachedTopAuthors = authors
+		leaderboardLastUpdated = time.Now()
+	}()
+}
+
 func StartCacheUpdater() {
 	ticker := time.NewTicker(cacheDuration)
 	defer ticker.Stop()
@@ -2280,6 +2313,143 @@ func StartCacheUpdater() {
 	}
 }
 
-func AddLiveChannelHandler(w http.ResponseWriter, r *http.Request) {
+func StartTopUpdater() {
+	ticker := time.NewTicker(cacheDuration)
+	defer ticker.Stop()
 
+	for {
+		select {
+		case <-ticker.C:
+			updateTopAuthorsCache()
+		}
+	}
+}
+
+func AddLiveChannelHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO
+}
+
+func GetTopAuthorsHandler(w http.ResponseWriter, r *http.Request) {
+	leaderboardMutex.RLock()
+	defer leaderboardMutex.RUnlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(cachedTopAuthors)
+}
+
+func LoadMessagesHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil {
+		http.Error(w, "Wrong request", http.StatusBadRequest)
+		return
+	}
+
+	messages, err := service.LoadMessagesHistory(limit)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+	//log.Println("Messages: " + strconv.Itoa(len(messages)))
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(messages)
+}
+
+func SendMessageHandler(w http.ResponseWriter, r *http.Request) {
+	// Ограничиваем размер запроса (50 MB для сообщений с файлами)
+	r.ParseMultipartForm(50 << 20)
+
+	// Получаем текст сообщения
+	messageText := r.FormValue("message")
+
+	// Проверяем авторизацию пользователя
+	session, err := store.Get(r, sessionName)
+	if err != nil {
+		http.Error(w, "Session error", http.StatusInternalServerError)
+		return
+	}
+
+	userID, ok := session.Values["user_id"]
+	if !ok {
+		http.Error(w, "Unauthorised", http.StatusUnauthorized)
+		return
+	}
+
+	// Проверка на бан
+	if service.IsBanned(userID.(int)) {
+		http.Error(w, "Вы забанены и не можете отправлять сообщения в чат", http.StatusForbidden)
+		return
+	}
+
+	user, err := service.GetUserByID(userID.(int))
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	// Обрабатываем прикрепленные файлы
+	files := r.MultipartForm.File["files"]
+
+	messageID, err := service.SaveMessage(user.ID, user.CurrentBadgeID, messageText)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	for _, fileHeader := range files {
+		file, err := fileHeader.Open()
+		if err != nil {
+			log.Printf("Ошибка открытия файла: %v", err)
+			continue
+		}
+		defer file.Close()
+
+		// Проверяем тип файла (только изображения и аудио)
+		buff := make([]byte, 512)
+		_, err = file.Read(buff)
+		if err != nil {
+			log.Printf("Ошибка чтения файла: %v", err)
+			continue
+		}
+
+		fileType := http.DetectContentType(buff)
+		if !strings.HasPrefix(fileType, "image/") && !strings.HasPrefix(fileType, "audio/") {
+			log.Printf("Недопустимый тип файла: %s", fileType)
+			continue
+		}
+
+		// Возвращаем указатель файла в начало
+		file.Seek(0, 0)
+
+		// Создаем директорию для загрузок чата, если её нет
+		os.MkdirAll("./static/chat_uploads", os.ModePerm)
+
+		// Генерируем уникальное имя файла
+		newFileName := service.GenerateUniqueFileName(fileHeader.Filename)
+		filePath := "./static/chat_uploads/" + newFileName
+
+		// Сохраняем файл
+		dst, err := os.Create(filePath)
+		if err != nil {
+			log.Printf("Ошибка создания файла: %v", err)
+			continue
+		}
+
+		if _, err := io.Copy(dst, file); err != nil {
+			log.Printf("Ошибка копирования файла: %v", err)
+			dst.Close()
+			continue
+		}
+		dst.Close()
+
+		// Сохраняем информацию в БД
+		err = service.ClipFile(messageID, "../static/chat_uploads/"+newFileName)
+
+		if err != nil {
+			log.Printf("Ошибка сохранения информации о файле: %v", err)
+			continue
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

@@ -117,7 +117,7 @@ class FeedManager {
         if (post.description != '') {
             descriptionContent = `
                     <div class="post-description">
-                        ${post.description}
+                        ${DOMPurify.sanitize(post.description)}
                     </div>`;
         } else {
             descriptionContent = ``;
@@ -129,15 +129,15 @@ class FeedManager {
             // Для клипов используем специальный контейнер
             mediaContent = `
                 <div class="clip-embed">
-                    ${post.file_name}
+                    ${DOMPurify.sanitize(post.file_name)}
                 </div>
             `;
         } else if (isVideo) {
             // Обычное видео
             mediaContent = `
                 <div class="video-container">
-                    <video id="mainVideo" poster="../static/uploads/${post.thumbnail}">
-                        <source src="../static/uploads/${post.file_name}" type="video/mp4">
+                    <video id="mainVideo" poster="../static/uploads/${DOMPurify.sanitize(post.thumbnail)}">
+                        <source src="../static/uploads/${DOMPurify.sanitize(post.file_name)}" type="video/mp4">
                     </video>
                     
                     <div class="video-loading">
@@ -185,7 +185,7 @@ class FeedManager {
             `;
         } else {
             // Изображение
-            mediaContent = `<img src="../static/uploads/${post.file_name}" alt="${post.title}">`;
+            mediaContent = `<img src="../static/uploads/${DOMPurify.sanitize(post.file_name)}" alt="${DOMPurify.sanitize(post.title)}">`;
         }
 
         let badge = '';
@@ -213,10 +213,10 @@ class FeedManager {
                 
                 <div class="post-footer">
                     <div class="post-caption">
-                        ${post.title}
+                        ${DOMPurify.sanitize(post.title)}
                     </div>
 
-                    ${descriptionContent}
+                    ${DOMPurify.sanitize(descriptionContent)}
 
                     <div class="post-stats">
                         <div class="reactions-container">

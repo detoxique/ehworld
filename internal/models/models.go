@@ -40,6 +40,7 @@ type MainFile struct {
 	Title      string `json:"title"`
 	Thumbnail  string `json:"thumbnail"`
 	Views      string `json:"views"`
+	Likes      string `json:"likes"`
 	AuthorName string `json:"author_name"`
 	Type       string `json:"type"`
 	IsVideo    bool   `json:"is_video"`
@@ -232,4 +233,22 @@ type TwitchStream struct {
 
 type TwitchStreamResponse struct {
 	Data []TwitchStream `json:"data"`
+}
+
+type Message struct {
+	ID          int       `json:"id"`
+	UserID      string    `json:"user_id"`
+	BadgeID     int       `json:"badge_id"`
+	Content     string    `json:"content"`
+	IsAnonymous bool      `json:"is_anonymous"`
+	Sent        time.Time `json:"sent_at"`
+}
+
+type MessageWithAuthor struct {
+	ID          int       `json:"id"`
+	DisplayName string    `json:"display_name"`
+	BadgeURL    string    `json:"badge_url"`
+	Content     string    `json:"content"`
+	FilesURL    []string  `json:"files_urls"`
+	Sent        time.Time `json:"sent_at"`
 }

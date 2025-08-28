@@ -21,7 +21,8 @@ func Run() {
 	service.InitDB()
 	handlers.UpdateConfig()
 
-	go handlers.StartCacheUpdater()
+	go handlers.StartCacheUpdater() // Обновляет информацию с Twitch раз в минуту
+	go handlers.StartTopUpdater()   // Обновляет лидерборд
 
 	value := os.Getenv("PORT")
 
@@ -71,6 +72,10 @@ func Run() {
 	r.HandleFunc("/api/apply-badge/{id}", handlers.AuthMiddleware(handlers.ApplyBadgeHandler)).Methods("POST")
 	r.HandleFunc("/api/apply-item/{id}", handlers.AuthMiddleware(handlers.ApplyItem)).Methods("POST")
 	r.HandleFunc("/api/live-channels", handlers.GetLiveChannelsHandler).Methods("GET")
+	r.HandleFunc("/api/top-authors", handlers.GetTopAuthorsHandler).Methods("GET")
+	// Чат
+	r.HandleFunc("/api/chat/messages", handlers.AuthMiddleware(handlers.LoadMessagesHistoryHandler)).Methods("GET")
+	r.HandleFunc("/api/chat/send", handlers.AuthMiddleware(handlers.SendMessageHandler)).Methods("POST")
 
 	// Модераторские API
 	r.HandleFunc("/api/moderation/posts/{page}", handlers.ModeratorMiddleware(handlers.GetModerationPostsHandler)).Methods("GET")

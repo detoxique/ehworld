@@ -1,12 +1,118 @@
-.top-panel {
+.top-users-panel {
     width: 320px;
     flex-shrink: 0;
-    /* background: rgba(49, 49, 49, 0.6); */
+    background: rgba(49, 49, 49, 0.6);
     border-radius: 16px;
     padding: 15px;
-    /* border: 1px solid rgba(255, 255, 255, 0.08); */
+    border: 1px solid rgba(255, 255, 255, 0.08);
     max-height: calc(100vh - 150px);
     overflow-y: auto;
     position: sticky;
     top: 100px;
+    scrollbar-width: thin;
+    scrollbar-color: #666666 #161616;
+    min-width: 320px;
+}
+
+.top-users-header {
+    /* display: flex; */
+    justify-content: space-between;
+    /* align-items: center; */
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.top-users-header h3 {
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0;
+    margin-bottom: 5px;
+}
+
+.top-users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.user-item {
+    display: flex;
+    /* align-items: center; */
+    gap: 12px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.user-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.user-avatar-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.user-info {
+    /* flex-grow: 1; */
+    overflow: hidden;
+    align-items:baseline;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    color: white;
+    text-decoration: none;
+}
+
+.user-name:hover {
+    text-decoration: none;
+    color: white;
+}
+
+.user-stats {
+    margin-top: -5px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.loading-users,
+.no-users,
+.users-error {
+    text-align: center;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
+@media (max-width: 1200px) {
+    .top-users-panel {
+        width: 280px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .top-users-panel {
+        width: 100%;
+        max-height: none;
+        position: static;
+        margin-left: 0;
+        margin-top: 20px;
+    }
+    
+    .chat-container {
+        width: 300px;
+        height: 350px;
+    }
 }

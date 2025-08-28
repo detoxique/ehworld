@@ -96,13 +96,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let content = '';
             if (post.type === 'clip') content = `
-                        <img src="${post.thumbnail}" alt="{{.Title}}">
+                        <img src="${DOMPurify.sanitize(post.thumbnail)}" alt="${DOMPurify.sanitize(post.title)}">
                         <div class="play-icon">▶</div>`;
             else if (post.file_name.match(/\.(mp4|mov|avi)$/i)) content = `
-                        <img src="../static/uploads/${post.thumbnail}" alt="{{.Title}}">
+                        <img src="../static/uploads/${DOMPurify.sanitize(post.thumbnail)}" alt="${DOMPurify.sanitize(post.title)}">
                         <div class="play-icon">▶</div>
             `;
-            else if (post.type === 'file') content = `<img src="../static/uploads/${post.file_name}" alt="{{.Title}}">`;
+            else if (post.type === 'file') content = `<img src="../static/uploads/${DOMPurify.sanitize(post.file_name)}" alt="${DOMPurify.sanitize(post.title)}">`;
             
             postCard.innerHTML = `
                 <a href="/post/${post.id}" class="post-card">

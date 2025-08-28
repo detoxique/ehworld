@@ -497,196 +497,307 @@ func UnFuckYouFile(userID, fileID int) error {
 
 // Лайки
 func LikeFile(userID, fileID int) error {
-	if !IsBanned(userID) {
-		_, err := db.Exec(`
-		INSERT INTO likes (user_id, file_id)
-		VALUES ($1, $2)
-		ON CONFLICT (user_id, file_id) DO NOTHING
-	`, userID, fileID)
+	if IsBanned(userID) {
+		return errors.New("user is banned")
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Пытаемся поставить лайк
+	res, err := tx.Exec(`
+        INSERT INTO likes (user_id, file_id)
+        VALUES ($1, $2)
+        ON CONFLICT (user_id, file_id) DO NOTHING
+    `, userID, fileID)
+	if err != nil {
+		log.Println("попытка поставить лайк")
+		return err
+	}
+
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
+		log.Println("лайк уже поставлен")
+		return nil // Лайк уже был поставлен
+	}
+
+	// Получаем автора файла
+	var fileAuthorID int
+	err = tx.QueryRow(`
+        SELECT user_id FROM files WHERE id = $1
+    `, fileID).Scan(&fileAuthorID)
+	if err != nil {
+		log.Println("не получили автора файла")
+		return err
+	}
+
+	// Обновляем рейтинг если это не собственный лайк
+	if userID != fileAuthorID {
+		_, err = tx.Exec(`
+            UPDATE users 
+            SET rating = rating + 1 
+            WHERE id = $1
+        `, fileAuthorID)
 		if err != nil {
+			log.Println("не обновили рейтинг")
 			return err
 		}
+	}
 
-		var file_author_id int
-		err = db.QueryRow(`
-		SELECT user_id FROM files
-		WHERE id = $1
-		`, fileID).Scan(&file_author_id)
-		if err != nil {
-			return err
-		}
-
-		// Не засчитывать собственные лайки
-		if userID != file_author_id {
-			err = IncrementRating(file_author_id, 1)
-			if err != nil {
-				return err
-			}
-		}
-
-		var author_id int
-		err = db.QueryRow(`
-		SELECT user_id FROM files
-		WHERE id = $1
-		`, fileID).Scan(&author_id)
-		if err != nil {
-			return err
-		}
-
-		// Отправить уведомление
-		var count int
-		err = db.QueryRow(`
+	// Создаем уведомление
+	var count int
+	err = tx.QueryRow(`
 		SELECT COUNT(*) FROM notifications
 		WHERE author_id = $1 AND file_id = $2 AND user_id = $3 AND type = 'like'
-		`, userID, fileID, author_id).Scan(&count)
-		if err != nil {
-			return err
-		}
+		`, userID, fileID, fileAuthorID).Scan(&count)
+	if err != nil {
+		return err
+	}
 
-		// Уведомлений нет
-		if count == 0 {
-			var user_display_name, user_profile_image string
-			err = db.QueryRow(`
+	// Уведомлений нет
+	if count == 0 {
+		var user_display_name, user_profile_image string
+		err = tx.QueryRow(`
 		SELECT display_name, profile_image_url FROM users
 		WHERE id = $1
 		`, userID).Scan(&user_display_name, &user_profile_image)
-			if err != nil {
-				return err
-			}
-
-			_, err = db.Exec(`
-		INSERT INTO notifications (user_id, author_id, notification, image, link, file_id, type)
-		VALUES ($1, $2, $3, $4, $5, $6, 'like')
-	`, author_id, userID, user_display_name+" послал поставил лайк вашей публикации!", user_profile_image, "https://ehworld.ru/post/"+strconv.Itoa(fileID), fileID)
-			if err != nil {
-				return err
-			}
+		if err != nil {
+			return err
 		}
 
-		_, err = db.Exec(`
-		UPDATE files 
-		SET likes = (SELECT COUNT(*) FROM likes WHERE file_id = $1)
-		WHERE id = $2
-	`, fileID, fileID)
-		return err
-	} else {
-		return errors.New("user is banned")
+		_, err = tx.Exec(`
+		INSERT INTO notifications (user_id, author_id, notification, image, link, file_id, type)
+		VALUES ($1, $2, $3, $4, $5, $6, 'like')
+	`, fileAuthorID, userID, user_display_name+" послал поставил лайк вашей публикации!", user_profile_image, "https://ehworld.ru/post/"+strconv.Itoa(fileID), fileID)
+		if err != nil {
+			return err
+		}
 	}
+
+	// Обновляем счетчик лайков
+	_, err = tx.Exec(`
+        UPDATE files 
+        SET likes = (SELECT COUNT(*) FROM likes WHERE file_id = $1)
+        WHERE id = $1
+    `, fileID)
+	if err != nil {
+		log.Println("не обновили счетчик лайков")
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func LikeComment(userID, commentID int) error {
-	if !IsBanned(userID) {
-		_, err := db.Exec(`
-		INSERT INTO comments_likes (user_id, comment_id)
-		VALUES ($1, $2)
-		ON CONFLICT (user_id, comment_id) DO NOTHING
-	`, userID, commentID)
-		if err != nil {
-			return err
-		}
-
-		var author_id int
-		err = db.QueryRow(`
-		SELECT user_id FROM comments
-		WHERE id = $1
-		`, commentID).Scan(&author_id)
-		if err != nil {
-			return err
-		}
-
-		// Не засчитывать собственные лайки
-		if userID != author_id {
-			err = IncrementRating(author_id, 1)
-			if err != nil {
-				return err
-			}
-		}
-
-		_, err = db.Exec(`
-		UPDATE comments 
-		SET likes = (SELECT COUNT(*) FROM comments_likes WHERE comment_id = $1)
-		WHERE id = $2
-	`, commentID, commentID)
-		return err
-	} else {
+	if IsBanned(userID) {
 		return errors.New("user is banned")
 	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Пытаемся поставить лайк
+	res, err := tx.Exec(`
+        INSERT INTO comments_likes (user_id, comment_id)
+        VALUES ($1, $2)
+        ON CONFLICT (user_id, comment_id) DO NOTHING
+    `, userID, commentID)
+	if err != nil {
+		return err
+	}
+
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
+		return nil // Лайк уже был поставлен
+	}
+
+	// Получаем автора комментария
+	var commentAuthorID int
+	err = tx.QueryRow(`
+        SELECT user_id FROM comments WHERE id = $1
+    `, commentID).Scan(&commentAuthorID)
+	if err != nil {
+		return err
+	}
+
+	// Обновляем рейтинг если это не собственный лайк
+	if userID != commentAuthorID {
+		_, err = tx.Exec(`
+            UPDATE users 
+            SET rating = rating + 1 
+            WHERE id = $1
+        `, commentAuthorID)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Получаем ID файла
+	var fileID int
+	err = tx.QueryRow(`
+        SELECT file_id FROM comments WHERE id = $1
+    `, commentID).Scan(&fileID)
+	if err != nil {
+		return err
+	}
+
+	// Создаем уведомление
+	var count int
+	err = tx.QueryRow(`
+		SELECT COUNT(*) FROM notifications
+		WHERE author_id = $1 AND file_id = $2 AND user_id = $3 AND type = 'like'
+		`, userID, fileID, commentAuthorID).Scan(&count)
+	if err != nil {
+		return err
+	}
+
+	// Уведомлений нет
+	if count == 0 {
+		var user_display_name, user_profile_image string
+		err = tx.QueryRow(`
+		SELECT display_name, profile_image_url FROM users
+		WHERE id = $1
+		`, userID).Scan(&user_display_name, &user_profile_image)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.Exec(`
+		INSERT INTO notifications (user_id, author_id, notification, image, link, file_id, type)
+		VALUES ($1, $2, $3, $4, $5, $6, 'like')
+	`, commentAuthorID, userID, user_display_name+" поставил лайк вашему комментарию!", user_profile_image, "https://ehworld.ru/post/"+strconv.Itoa(fileID), fileID)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Обновляем счетчик лайков
+	_, err = tx.Exec(`
+        UPDATE comments 
+        SET likes = (SELECT COUNT(*) FROM comments_likes WHERE comment_id = $1)
+        WHERE id = $1
+    `, commentID)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func UnlikeFile(userID, fileID int) error {
-	liked, _ := HasLiked(userID, fileID)
-	if liked {
-		_, err := db.Exec(`
-		DELETE FROM likes 
-		WHERE user_id = $1 AND file_id = $2
-	`, userID, fileID)
-		if err != nil {
-			return err
-		}
-
-		var author_id int
-		err = db.QueryRow(`
-		SELECT user_id FROM files
-		WHERE id = $1
-		`, fileID).Scan(&author_id)
-		if err != nil {
-			return err
-		}
-
-		if userID != author_id {
-			err = IncrementRating(author_id, -1)
-			if err != nil {
-				return err
-			}
-		}
-
-		_, err = db.Exec(`
-		UPDATE files 
-		SET likes = (SELECT COUNT(*) FROM likes WHERE file_id = $1)
-		WHERE id = $2
-	`, fileID, fileID)
+	tx, err := db.Begin()
+	if err != nil {
 		return err
-	} else {
+	}
+	defer tx.Rollback()
+
+	// Удаляем лайк и проверяем был ли он
+	res, err := tx.Exec(`
+        DELETE FROM likes 
+        WHERE user_id = $1 AND file_id = $2
+    `, userID, fileID)
+	if err != nil {
+		return err
+	}
+
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
 		return errors.New("file wasn't liked")
 	}
+
+	// Получаем автора файла
+	var authorID int
+	err = tx.QueryRow(`
+        SELECT user_id FROM files WHERE id = $1
+    `, fileID).Scan(&authorID)
+	if err != nil {
+		return err
+	}
+
+	// Обновляем рейтинг если это не собственный лайк
+	if userID != authorID {
+		_, err = tx.Exec(`
+            UPDATE users 
+            SET rating = rating - 1 
+            WHERE id = $1
+        `, authorID)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Обновляем счетчик лайков
+	_, err = tx.Exec(`
+        UPDATE files 
+        SET likes = (SELECT COUNT(*) FROM likes WHERE file_id = $1)
+        WHERE id = $1
+    `, fileID)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func UnlikeComment(userID, commentID int) error {
-	liked, _ := HasLikedComment(userID, commentID)
-	if liked {
-		_, err := db.Exec(`
-		DELETE FROM comments_likes 
-		WHERE user_id = $1 AND comment_id = $2
-	`, userID, commentID)
-		if err != nil {
-			return err
-		}
-
-		var author_id int
-		err = db.QueryRow(`
-		SELECT user_id FROM comments
-		WHERE id = $1
-		`, commentID).Scan(&author_id)
-		if err != nil {
-			return err
-		}
-
-		if userID != author_id {
-			err = IncrementRating(author_id, -1)
-			if err != nil {
-				return err
-			}
-		}
-
-		_, err = db.Exec(`
-		UPDATE comments 
-		SET likes = (SELECT COUNT(*) FROM comments_likes WHERE comment_id = $1)
-		WHERE id = $2
-	`, commentID, commentID)
+	tx, err := db.Begin()
+	if err != nil {
 		return err
-	} else {
+	}
+	defer tx.Rollback()
+
+	// Удаляем лайк и проверяем был ли он
+	res, err := tx.Exec(`
+        DELETE FROM comments_likes 
+        WHERE user_id = $1 AND comment_id = $2
+    `, userID, commentID)
+	if err != nil {
+		return err
+	}
+
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
 		return errors.New("comment wasn't liked")
 	}
+
+	// Получаем автора файла
+	var authorID int
+	err = tx.QueryRow(`
+        SELECT user_id FROM comments WHERE id = $1
+    `, commentID).Scan(&authorID)
+	if err != nil {
+		return err
+	}
+
+	// Обновляем рейтинг если это не собственный лайк
+	if userID != authorID {
+		_, err = tx.Exec(`
+            UPDATE users 
+            SET rating = rating - 1 
+            WHERE id = $1
+        `, authorID)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Обновляем счетчик лайков
+	_, err = tx.Exec(`
+        UPDATE comments 
+        SET likes = (SELECT COUNT(*) FROM comments_likes WHERE comment_id = $1)
+        WHERE id = $1
+    `, commentID)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func HasLiked(userID, fileID int) (bool, error) {
@@ -1082,7 +1193,7 @@ func FormatViews(num int64) string {
 	lastOne := num % 10
 
 	if lastTwo >= 11 && lastTwo <= 19 {
-		return FormatValue(num) + " просомтров"
+		return FormatValue(num) + " просмотров"
 	}
 
 	switch lastOne {
@@ -1092,6 +1203,24 @@ func FormatViews(num int64) string {
 		return FormatValue(num) + " просмотра"
 	default:
 		return FormatValue(num) + " просмотров"
+	}
+}
+
+func FormatLikes(num int64) string {
+	lastTwo := num % 100
+	lastOne := num % 10
+
+	if lastTwo >= 11 && lastTwo <= 19 {
+		return FormatValue(num) + " лайков"
+	}
+
+	switch lastOne {
+	case 1:
+		return FormatValue(num) + " лайк"
+	case 2, 3, 4:
+		return FormatValue(num) + " лайка"
+	default:
+		return FormatValue(num) + " лайков"
 	}
 }
 
@@ -1382,7 +1511,7 @@ func GetModerationPosts(limit, offset int) (models.ModerationResponse, error) {
 func GetLastPosts(limit, offset int) ([]models.MainFile, error) {
 	rows, err := db.Query(`
         SELECT f.id, f.title, f.thumbnail, 
-               f.views, f.type, f.file_name, u.display_name
+               f.views, f.likes, f.type, f.file_name, u.display_name
         FROM files f
         JOIN users u ON u.id = f.user_id
         WHERE f.is_public = true
@@ -1398,14 +1527,16 @@ func GetLastPosts(limit, offset int) ([]models.MainFile, error) {
 	for rows.Next() {
 		var file models.MainFile
 		err := rows.Scan(
-			&file.ID, &file.Title, &file.Thumbnail, &file.Views, &file.Type, &file.FileName,
+			&file.ID, &file.Title, &file.Thumbnail, &file.Views, &file.Likes, &file.Type, &file.FileName,
 			&file.AuthorName,
 		)
 		if err != nil {
 			return nil, err
 		}
 		views_s, _ := strconv.Atoi(file.Views)
-		file.Views = FormatViews(int64(views_s))
+		likes_s, _ := strconv.Atoi(file.Likes)
+		file.Views = FormatValue(int64(views_s))
+		file.Likes = FormatValue(int64(likes_s))
 		file.IsVideo = IsVideoFile(file.FileName)
 		files = append(files, file)
 	}
@@ -2671,4 +2802,123 @@ func LoadChannelsToCheck() []string {
 	log.Println("Channels loaded: " + strconv.Itoa(len(result)))
 
 	return result
+}
+
+func GetLeaderboard() ([]models.User, error) {
+	var result []models.User
+
+	channels, err := db.Query(`
+			SELECT display_name, profile_image_url, followers FROM users ORDER BY followers DESC LIMIT 5;
+		`)
+	if err == nil {
+		defer channels.Close()
+		for channels.Next() {
+			var s models.User
+			if err := channels.Scan(&s.DisplayName, &s.ProfileImageURL, &s.Followers); err == nil {
+				result = append(result, s)
+			}
+		}
+	} else {
+		log.Println("Getting channels error: " + err.Error())
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func LoadMessagesHistory(limit int) ([]models.MessageWithAuthor, error) {
+	var result []models.MessageWithAuthor
+
+	messages, err := db.Query(`
+			SELECT 
+				m.id,
+				CASE 
+					WHEN m.is_anonymous THEN 'Аноним'
+					ELSE u.display_name 
+				END AS display_name,
+				b.image AS badge_url,
+				m.content,
+				m.sent_at
+			FROM messages m
+			LEFT JOIN users u ON m.user_id = u.id
+			LEFT JOIN badges b ON COALESCE(m.badge_id, u.badge_id) = b.id
+			LEFT JOIN messages_files mf ON m.id = mf.message_id
+			GROUP BY m.id, u.display_name, m.is_anonymous, b.image
+			ORDER BY m.id
+			LIMIT $1;
+		`, limit)
+	if err == nil {
+		defer messages.Close()
+		for messages.Next() {
+			var m models.MessageWithAuthor
+			if err := messages.Scan(&m.ID, &m.DisplayName, &m.BadgeURL, &m.Content, &m.Sent); err == nil {
+				files, _ := getFilesURLs(m.ID)
+				m.FilesURL = files
+				result = append(result, m)
+			} else {
+				log.Println(err.Error())
+			}
+		}
+	} else {
+		log.Println("Getting messages error: " + err.Error())
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func getFilesURLs(messageID int) ([]string, error) {
+	var result []string
+
+	files, err := db.Query(`
+			SELECT file_name FROM messages_files WHERE message_id = $1;
+		`, messageID)
+	if err == nil {
+		defer files.Close()
+		for files.Next() {
+			var s string
+			if err := files.Scan(&s); err == nil {
+				result = append(result, s)
+			}
+		}
+	} else {
+		log.Println("Getting  message files error: " + err.Error())
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func SaveMessage(userID, badgeID int, message string) (int, error) {
+	var lastSimilarMessage string
+	var lastMessageTime time.Time
+
+	err := db.QueryRow(`
+        SELECT content, sent_at 
+        FROM messages 
+        WHERE user_id = $1 AND content = $2 
+        ORDER BY sent_at DESC 
+        LIMIT 1
+    `, userID, message).Scan(&lastSimilarMessage, &lastMessageTime)
+	if err == nil {
+		// Сообщение найдено
+		if time.Since(lastMessageTime) < 30*time.Second {
+			return -1, errors.New("you can send only unique messages")
+		}
+	}
+
+	var messageID int
+	err = db.QueryRow(
+		"INSERT INTO messages (user_id, badge_id, content) VALUES ($1, $2, $3) RETURNING id",
+		userID, badgeID, message,
+	).Scan(&messageID)
+	return messageID, err
+}
+
+func ClipFile(messageID int, fileName string) error {
+	_, err := db.Exec(
+		"INSERT INTO messages_files (message_id, file_name) VALUES ($1, $2)",
+		messageID, fileName,
+	)
+	return err
 }

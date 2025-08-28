@@ -9,14 +9,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" href="../static/css/avatar.css">
     <link rel="stylesheet" href="../static/css/main.css">
-    <link rel="stylesheet" href="../static/css/header.css">
+    <link rel="stylesheet" href="../static/css/header-.css">
     <link rel="stylesheet" href="../static/css/footer.css">
     <link rel="stylesheet" href="../static/css/search.css">
-    <link rel="stylesheet" href="../static/css/chat.css">
+    <link rel="stylesheet" href="../static/css/ehchochat.css">
     <link rel="stylesheet" href="../static/css/live-panel-.css">
     <link rel="stylesheet" href="../static/css/top-users.css">
 </head>
 <body>
+    
     <header class="header">
         <a href="#" class="logo">
             <img src="../static/img/EhWorld.svg" width="148">
@@ -146,7 +147,13 @@
                                     <h3 class="post-title">{{.Title}}</h3>
                                     <p class="post-author" onclick="window.location.href='/user/{{ .AuthorName }}'">@{{.AuthorName}}</p>
                                     <div class="post-stats">
-                                        <span class="views">{{ formatViews .Views}}</span>
+                                        <img src="../static/img/view.svg" width="20" height="20">
+                                        <span class="views">{{formatValue .Views}}</span>
+
+                                        <svg width="20" height="20" viewBox="0 0 24 24">
+                                            <path d="M16.5,3C13.605,3,12,5.09,12,5.09S10.395,3,7.5,3C4.462,3,2,5.462,2,8.5c0,4.171,4.912,8.8,10,12.5 c5.088-3.7,10-8.329,10-12.5C22,5.462,19.538,3,16.5,3z" fill="#65676B"/>
+                                        </svg>
+                                        <span class="likes">{{formatValue .Likes}}</span>
                                     </div>
                                 </div>
                             </a>
@@ -177,8 +184,13 @@
                                         <h3 class="post-title">{{.Title}}</h3>
                                         <p class="post-author" onclick="window.location.href='/user/{{ .AuthorName }}'">@{{.AuthorName}}</p>
                                         <div class="post-stats">
-                                            <!-- <span class="likes">❤️ {{.Likes}}</span> -->
-                                            <span class="views">{{ formatViews .Views}}</span>
+                                            <img src="../static/img/view.svg" width="20" height="20">
+                                            <span class="views">{{formatValue .Views}}</span>
+                                            
+                                            <svg width="20" height="20" viewBox="0 0 24 24">
+                                                <path d="M16.5,3C13.605,3,12,5.09,12,5.09S10.395,3,7.5,3C4.462,3,2,5.462,2,8.5c0,4.171,4.912,8.8,10,12.5 c5.088-3.7,10-8.329,10-12.5C22,5.462,19.538,3,16.5,3z" fill="#65676B"/>
+                                            </svg>
+                                            <span class="likes">{{formatValue .Likes}}</span>
                                         </div>
                                     </div>
                                 </a>
@@ -214,8 +226,13 @@
                                         <h3 class="post-title">{{.Title}}</h3>
                                         <p class="post-author" onclick="window.location.href='/user/{{ .AuthorName }}'">@{{.AuthorName}}</p>
                                         <div class="post-stats">
-                                            <!-- <span class="likes">❤️ {{.Likes}}</span> -->
-                                            <span class="views">{{ formatViews .Views}}</span>
+                                            <img src="../static/img/view.svg" width="20" height="20">
+                                            <span class="views">{{formatValue .Views}}</span>
+                                            
+                                            <svg width="20" height="20" viewBox="0 0 24 24">
+                                                <path d="M16.5,3C13.605,3,12,5.09,12,5.09S10.395,3,7.5,3C4.462,3,2,5.462,2,8.5c0,4.171,4.912,8.8,10,12.5 c5.088-3.7,10-8.329,10-12.5C22,5.462,19.538,3,16.5,3z" fill="#65676B"/>
+                                            </svg>
+                                            <span class="likes">{{formatValue .Likes}}</span>
                                         </div>
                                     </div>
                                 </a>
@@ -247,8 +264,13 @@
                                     <h3 class="post-title">{{.Title}}</h3>
                                     <p class="post-author" onclick="window.location.href='/user/{{ .AuthorName }}'">@{{.AuthorName}}</p>
                                     <div class="post-stats">
-                                        <!-- <span class="likes">❤️ {{.Likes}}</span> -->
-                                        <span class="views">{{ formatViews .Views}}</span>
+                                        <img src="../static/img/view.svg" width="20" height="20">
+                                        <span class="views">{{formatValue .Views}}</span>
+                                        
+                                        <svg width="20" height="20" viewBox="0 0 24 24">
+                                            <path d="M16.5,3C13.605,3,12,5.09,12,5.09S10.395,3,7.5,3C4.462,3,2,5.462,2,8.5c0,4.171,4.912,8.8,10,12.5 c5.088-3.7,10-8.329,10-12.5C22,5.462,19.538,3,16.5,3z" fill="#65676B"/>
+                                        </svg>
+                                        <span class="likes">{{formatValue .Likes}}</span>
                                     </div>
                                 </div>
                             </a>
@@ -261,8 +283,15 @@
                 
                 </div>
             
-                <div class="top-panel">
-                    <p class="titles"></p>
+                <div class="section">
+                    <div class="top-users-panel">
+                        <div class="top-users-header">
+                            <h3>Топ авторов</h3>
+                        </div>
+                        <div class="top-users-list" id="topUsersList">
+                            <div class="loading-users">Загрузка пользователей...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -280,11 +309,24 @@
             <img src="../static/img/comments.svg" alt="Chat" width="24" height="24">
         </button>
         <div class="chat-container" id="chatContainer">
-            <iframe src="https://www.twitch.tv/embed/ehchobyah/chat?parent=ehworld.ru"
-                    height="200"
-                    width="600">
-            </iframe>
-            <button class="close-chat" id="closeChat">-</button>
+            <div class="chat-header">
+                <h4>Чат</h4>
+                <button class="close-chat" id="closeChat">×</button>
+            </div>
+            <div class="messages-container" id="messagesContainer">
+                <!-- Сообщения будут загружаться здесь -->
+            </div>
+            <div class="chat-input-container">
+                <div class="file-preview" id="filePreview"></div>
+                <div class="input-group">
+                    <input type="text" id="messageInput" placeholder="Введите сообщение...">
+                    <label for="fileInput" class="file-input-label">
+                        <img src="../static/img/paperclip.svg" alt="Прикрепить файл" width="20" height="20">
+                    </label>
+                    <input type="file" id="fileInput" accept="image/*,audio/*" style="display: none;">
+                    <button id="sendMessageBtn">Отправить</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -318,10 +360,13 @@
                         </div>
                     </div>
             </footer>
-
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <script src="../static/js/header.js"></script>
-    <script src="../static/js/chat.js"></script>
+    <script src="../static/js/ehchochat-.js"></script>
     <script src="../static/js/live-panel.js"></script>
+    <script src="../static/js/top-users.js"></script>
+    
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -403,7 +448,7 @@
 
         function createCardHtml(file) {
             // Определяем источник превью и нужно ли показывать иконку видео
-            let thumbnailSrc = file.thumbnail;
+            let thumbnailSrc = DOMPurify.sanitize(file.thumbnail);
             let showVideoIcon = false;
 
             if (file.type === "clip") {
@@ -413,27 +458,34 @@
                     thumbnailSrc = `../static/uploads/${thumbnailSrc}`;
                     showVideoIcon = true;
                 } else {
-                    thumbnailSrc = `../static/uploads/${file.file_name}`;
+                    thumbnailSrc = `../static/uploads/${DOMPurify.sanitize(file.file_name)}`;
                 }
             }
 
             return `
             <a href="/post/${file.id}" class="post-card">
                 <div class="post-thumbnail">
-                    <img src="${thumbnailSrc}" alt="${file.title}">
+                    <img src="${DOMPurify.sanitize(thumbnailSrc)}" alt="${DOMPurify.sanitize(file.title)}">
                     ${showVideoIcon ? '<div class="play-icon">▶</div>' : ''}
                 </div>
                 <div class="post-content">
-                    <h3 class="post-title">${file.title}</h3>
+                    <h3 class="post-title">${DOMPurify.sanitize(file.title)}</h3>
                     <p class="post-author">@${file.author_name}</p>
                     <div class="post-stats">
+                        <img src="../static/img/view.svg" width="20" height="20">
                         <span class="views">${file.views}</span>
+                                        
+                        <svg width="20" height="20" viewBox="0 0 24 24">
+                            <path d="M16.5,3C13.605,3,12,5.09,12,5.09S10.395,3,7.5,3C4.462,3,2,5.462,2,8.5c0,4.171,4.912,8.8,10,12.5 c5.088-3.7,10-8.329,10-12.5C22,5.462,19.538,3,16.5,3z" fill="#65676B"/>
+                        </svg>
+                        <span class="likes">${file.likes}</span>
                     </div>
                 </div>
             </a>
             `;
         }
     </script>
+    
     <script src="../static/js/search.js"></script>
     <script src="../static/js/notifications.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>

@@ -27,10 +27,12 @@ import (
 	"golang.org/x/oauth2/twitch"
 )
 
-var (
-	sessionName   = "ehcho-session"
-	sessionSecret = os.Getenv("SESSION_SECRET")
+const(
+	sessionName = "ehcho-session"
+	//здесь бы дописать кал на валидацию секретной фразы, и добавить возраст сессии но это на усмотрение свое
 )
+
+
 
 var (
 	oauthConfig = &oauth2.Config{
@@ -40,7 +42,8 @@ var (
 		Scopes:       []string{"user:read:email"},
 		Endpoint:     twitch.Endpoint,
 	}
-	store = sessions.NewCookieStore([]byte(sessionSecret))
+
+	store = createAhuetSecureSession()
 )
 
 var adminOAuthConfig = &oauth2.Config{
@@ -66,11 +69,39 @@ var (
 	updateInterval         = time.Minute
 )
 
+func createAhuetSecureSession() *sessions.CookieStore {
+
+	sessionSecret := os.Getenv("SESSION_SECRET");
+	store := sessions.NewCookieStore([]byte(sessionSecret))
+
+
+	store.Options = &sessions.Options{
+		Secure: true,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	}
+
+	return store
+}
+
+func rotateSession(w http.ResponseWriter, r *http.Request, userID int) error {
+
+	oldSession, _ := store.Get(r, sessionName)
+	oldSession.Options.MaxAge = -1
+	if err := oldSession.Save(r, w); err != nil {
+		return err
+	}
+	
+	newSession, _ := store.New(r, sessionName)
+	newSession.Values["user_id"] = userID
+	return newSession.Save(r, w)
+}
+
 func UpdateConfig() {
 	sessionSecret = os.Getenv("SESSION_SECRET")
 	oauthConfig.ClientID = os.Getenv("TWITCH_CLIENT_ID")
 	oauthConfig.ClientSecret = os.Getenv("TWITCH_CLIENT_SECRET")
-	store = sessions.NewCookieStore([]byte(sessionSecret))
+	store = createAhuetSecureSession()
 
 	adminOAuthConfig.ClientID = os.Getenv("TWITCH_CLIENT_ID_BOT")
 	adminOAuthConfig.ClientSecret = os.Getenv("TWITCH_CLIENT_SECRET_BOT")
@@ -222,12 +253,9 @@ func AuthCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	session, _ := store.Get(r, sessionName)
-	session.Values["user_id"] = user.ID
-	err = session.Save(r, w)
-	if err != nil {
-		log.Println("Failed to save session " + err.Error())
-		http.Error(w, "Failed to save session", http.StatusBadRequest)
+	if err := rotateSession(w, r, user.ID); err != nil {
+		log.Println("Ia nakosyachil tut: " + err.Error())
+		http.Error(w, "Failed to create secure session", http.StatusInternalServerError)
 		return
 	}
 

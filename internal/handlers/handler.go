@@ -67,7 +67,6 @@ var (
 )
 
 func createAhuetSecureSession() *sessions.CookieStore {
-
 	sessionSecret := os.Getenv("SESSION_SECRET")
 	store := sessions.NewCookieStore([]byte(sessionSecret))
 

@@ -27,9 +27,9 @@ import (
 	"golang.org/x/oauth2/twitch"
 )
 
-var (
-	sessionName   = "ehcho-session"
-	sessionSecret = os.Getenv("SESSION_SECRET")
+const (
+	sessionName = "ehcho-session"
+	//здесь бы дописать кал на валидацию секретной фразы, и добавить возраст сессии но это на усмотрение свое
 )
 
 var (
@@ -40,7 +40,8 @@ var (
 		Scopes:       []string{"user:read:email"},
 		Endpoint:     twitch.Endpoint,
 	}
-	store = sessions.NewCookieStore([]byte(sessionSecret))
+
+	store *sessions.CookieStore
 )
 
 var adminOAuthConfig = &oauth2.Config{
@@ -63,14 +64,45 @@ var (
 	leaderboardMutex       = &sync.RWMutex{}
 	cachedTopAuthors       []models.User
 	leaderboardLastUpdated time.Time
-	updateInterval         = time.Minute
 )
 
+func createAhuetSecureSession() *sessions.CookieStore {
+
+	sessionSecret := os.Getenv("SESSION_SECRET")
+	store := sessions.NewCookieStore([]byte(sessionSecret))
+
+	// store.Options = &sessions.Options{
+	// 	Path:     "/",
+	// 	MaxAge:   604800,
+	// 	Secure:   false,
+	// 	HttpOnly: true,
+	// 	SameSite: http.SameSiteStrictMode,
+	// }
+
+	return store
+}
+
+func rotateSession(w http.ResponseWriter, r *http.Request, userID int) error {
+	oldSession, _ := store.Get(r, sessionName)
+	oldSession.Options.MaxAge = -1
+	if err := oldSession.Save(r, w); err != nil {
+		log.Println(err.Error())
+		return err
+	}
+
+	newSession, _ := store.New(r, sessionName)
+	newSession.Options.MaxAge = 604800
+	newSession.Options.HttpOnly = true
+	newSession.Options.Secure = true
+	newSession.Options.Domain = "ehworld.ru"
+	newSession.Values["user_id"] = userID
+	return newSession.Save(r, w)
+}
+
 func UpdateConfig() {
-	sessionSecret = os.Getenv("SESSION_SECRET")
 	oauthConfig.ClientID = os.Getenv("TWITCH_CLIENT_ID")
 	oauthConfig.ClientSecret = os.Getenv("TWITCH_CLIENT_SECRET")
-	store = sessions.NewCookieStore([]byte(sessionSecret))
+	store = createAhuetSecureSession()
 
 	adminOAuthConfig.ClientID = os.Getenv("TWITCH_CLIENT_ID_BOT")
 	adminOAuthConfig.ClientSecret = os.Getenv("TWITCH_CLIENT_SECRET_BOT")
@@ -82,8 +114,74 @@ func ServeHomePage(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, sessionName)
 	if userID, ok := session.Values["user_id"]; ok {
 		_, err := service.GetUserByID(userID.(int))
+
 		if err == nil {
-			http.Redirect(w, r, "/main", http.StatusFound)
+
+			user, err := service.GetUserByID(userID.(int))
+			if err != nil {
+				log.Println("Не удалось получить пользователя из БД c ID " + strconv.Itoa(userID.(int)) + " " + err.Error())
+				http.Redirect(w, r, "/", http.StatusFound)
+				return
+			}
+
+			last_files, err := service.GetLastFilesWithAuthors()
+			if err != nil {
+				log.Println("Ошибка получения файлов:", err)
+				last_files = []models.FileWithAuthor{} // Пустой список при ошибке
+			}
+
+			popular_files, err := service.GetMostPopularWithAuthors()
+			if err != nil {
+				log.Println("Ошибка получения файлов:", err)
+				popular_files = []models.FileWithAuthor{} // Пустой список при ошибке
+			}
+
+			last_seen_files, err := service.GetLastSeenFilesWithAuthors(user.ID)
+			if err != nil {
+				log.Println("Ошибка получения файлов:", err)
+				last_seen_files = []models.FileWithAuthor{} // Пустой список при ошибке
+			}
+
+			new_followings, err := service.GetNewFollowings(user.ID)
+			if err != nil {
+				log.Println("Ошибка получения файлов:", err)
+				new_followings = []models.FileWithAuthor{} // Пустой список при ошибке
+			}
+
+			data := struct {
+				User             *models.User            `json:"user"`
+				MostPopularFiles []models.FileWithAuthor `json:"popular_files"`
+				LastFiles        []models.FileWithAuthor `json:"files"`
+				LastSeen         []models.FileWithAuthor `json:"last_seen"`
+				Followings       []models.FileWithAuthor `json:"followings"`
+			}{
+				User:             user,
+				MostPopularFiles: popular_files,
+				LastFiles:        last_files,
+				LastSeen:         last_seen_files,
+				Followings:       new_followings,
+			}
+
+			tmpl, err := template.New("main.html").Funcs(template.FuncMap{
+				"isVideo": func(filename string) bool {
+					ext := strings.ToLower(filepath.Ext(filename))
+					return ext == ".mp4" || ext == ".mov" || ext == ".avi"
+				},
+				"formatViews":      service.FormatViews,
+				"checkModRole":     service.CheckModeratorOrAdminRole,
+				"checkAdminRole":   service.CheckAdminRole,
+				"hasNotifications": service.HasNotifications,
+				"hasFollowings":    service.HasFollowings,
+				"formatLikes":      service.FormatLikes,
+				"formatValue":      service.FormatValue,
+			}).ParseFiles("templates/main.html")
+			if err != nil {
+				log.Println(err.Error())
+			}
+			err = tmpl.Execute(w, data)
+			if err != nil {
+				log.Println(err.Error())
+			}
 			return
 		}
 	}
@@ -222,21 +320,32 @@ func AuthCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	session, _ := store.Get(r, sessionName)
-	session.Values["user_id"] = user.ID
-	err = session.Save(r, w)
-	if err != nil {
-		log.Println("Failed to save session " + err.Error())
-		http.Error(w, "Failed to save session", http.StatusBadRequest)
+	if err := rotateSession(w, r, user.ID); err != nil {
+		log.Println("Ia nakosyachil tut: " + err.Error())
+		http.Error(w, "Failed to create secure session", http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/main", http.StatusFound)
+	// session, _ := store.Get(r, sessionName)
+	// session.Values["user_id"] = user.ID
+	// err = session.Save(r, w)
+	// if err != nil {
+	// 	log.Println("Failed to save session " + err.Error())
+	// 	http.Error(w, "Failed to save session", http.StatusBadRequest)
+	// 	return
+	// }
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		session, _ := store.Get(r, sessionName)
+		session, err := store.Get(r, sessionName)
+		if err != nil {
+			log.Println(err.Error())
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
 		_, ok := session.Values["user_id"]
 		if !ok {
 			http.Redirect(w, r, "/", http.StatusFound)
@@ -527,78 +636,7 @@ func BanUsernameHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ServeMainPage(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, sessionName)
-	userID, ok := session.Values["user_id"]
-	if !ok {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-
-	user, err := service.GetUserByID(userID.(int))
-	if err != nil {
-		log.Println("Не удалось получить пользователя из БД c ID " + strconv.Itoa(userID.(int)) + " " + err.Error())
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-
-	last_files, err := service.GetLastFilesWithAuthors()
-	if err != nil {
-		log.Println("Ошибка получения файлов:", err)
-		last_files = []models.FileWithAuthor{} // Пустой список при ошибке
-	}
-
-	popular_files, err := service.GetMostPopularWithAuthors()
-	if err != nil {
-		log.Println("Ошибка получения файлов:", err)
-		popular_files = []models.FileWithAuthor{} // Пустой список при ошибке
-	}
-
-	last_seen_files, err := service.GetLastSeenFilesWithAuthors(user.ID)
-	if err != nil {
-		log.Println("Ошибка получения файлов:", err)
-		last_seen_files = []models.FileWithAuthor{} // Пустой список при ошибке
-	}
-
-	new_followings, err := service.GetNewFollowings(user.ID)
-	if err != nil {
-		log.Println("Ошибка получения файлов:", err)
-		new_followings = []models.FileWithAuthor{} // Пустой список при ошибке
-	}
-
-	data := struct {
-		User             *models.User            `json:"user"`
-		MostPopularFiles []models.FileWithAuthor `json:"popular_files"`
-		LastFiles        []models.FileWithAuthor `json:"files"`
-		LastSeen         []models.FileWithAuthor `json:"last_seen"`
-		Followings       []models.FileWithAuthor `json:"followings"`
-	}{
-		User:             user,
-		MostPopularFiles: popular_files,
-		LastFiles:        last_files,
-		LastSeen:         last_seen_files,
-		Followings:       new_followings,
-	}
-
-	tmpl, err := template.New("main.html").Funcs(template.FuncMap{
-		"isVideo": func(filename string) bool {
-			ext := strings.ToLower(filepath.Ext(filename))
-			return ext == ".mp4" || ext == ".mov" || ext == ".avi"
-		},
-		"formatViews":      service.FormatViews,
-		"checkModRole":     service.CheckModeratorOrAdminRole,
-		"checkAdminRole":   service.CheckAdminRole,
-		"hasNotifications": service.HasNotifications,
-		"hasFollowings":    service.HasFollowings,
-		"formatLikes":      service.FormatLikes,
-		"formatValue":      service.FormatValue,
-	}).ParseFiles("templates/main.html")
-	if err != nil {
-		log.Println(err.Error())
-	}
-	err = tmpl.Execute(w, data)
-	if err != nil {
-		log.Println(err.Error())
-	}
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func ServeFeedPage(w http.ResponseWriter, r *http.Request) {

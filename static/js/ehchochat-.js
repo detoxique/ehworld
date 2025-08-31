@@ -1,12 +1,3 @@
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
 // Управление чатом
 class EhchoChat {
     constructor() {
@@ -21,6 +12,7 @@ class EhchoChat {
         
         this.attachedFiles = [];
         this.isOpen = false;
+        this.isAutoScrollEnabled = false;
         
         this.init();
     }
@@ -38,7 +30,7 @@ class EhchoChat {
         // Загружаем историю сообщений
         this.loadMessageHistory();
         
-        // Настраиваем интервал для обновления сообщений
+        // Интервал для обновления сообщений
         setInterval(() => this.loadMessageHistory(), 5000);
     }
     
@@ -73,7 +65,10 @@ class EhchoChat {
             });
             
             // Прокручиваем к последнему сообщению
-            this.scrollToBottom();
+            if (this.isAutoScrollEnabled) {
+                this.scrollToBottom();
+            }
+            
         } catch (error) {
             console.error('Ошибка при загрузке истории чата:', error);
         }
